@@ -10,31 +10,32 @@ import { SearchIcon } from '@chakra-ui/icons';
 import { useRouter } from 'next/navigation';
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
-import { mockQuestions } from '../../mock/mockData';
+import { useQuestionStore } from '@/stores/questionStore'; // Import store
 
 export default function Questions() {
-    const [questions] = useState(mockQuestions);
+    const { questions } = useQuestionStore(); // Lấy câu hỏi từ store
     const [search, setSearch] = useState('');
     const router = useRouter();
     
-    // Thêm bộ lọc cho độ khó
+    // Các bộ lọc
     const [filters, setFilters] = useState<{ subjects: string[], difficulties: string[] }>({ subjects: [], difficulties: [] });
     const [activeFilters, setActiveFilters] = useState<{ key: string; value: string }[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [questionsPerPage, setQuestionsPerPage] = useState(5);
-
+    
     // Extract unique values for filters
     const uniqueSubjects = Array.from(new Set(questions.map(q => q.subject)));
     const uniqueDifficulties = Array.from(new Set(questions.map(q => q.difficulty)));
 
-    useEffect(() => {
-        // Reset filters when questions change
-        setFilters({ subjects: [], difficulties: [] });
-        setActiveFilters([]);
-    }, [questions]);
+    const normalizeString = (str: string) => {
+        return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    };
 
     const filteredQuestions = questions.filter(q => 
-        (search === '' || q.subject.toLowerCase().includes(search.toLowerCase()) || q.content.toLowerCase().includes(search.toLowerCase())) &&
+        (search === '' || 
+            normalizeString(q.subject).includes(normalizeString(search)) || 
+            normalizeString(q.content).includes(normalizeString(search))
+        ) &&
         (filters.subjects.length === 0 || filters.subjects.includes(q.subject)) &&
         (filters.difficulties.length === 0 || filters.difficulties.includes(q.difficulty))
     );

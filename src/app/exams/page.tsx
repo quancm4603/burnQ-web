@@ -1,13 +1,12 @@
-// page/exams/page.tsx
 'use client';
 
 import { useState } from 'react';
-import { Box, Heading, Input, Button, VStack, HStack, Text, useDisclosure } from '@chakra-ui/react';
+import { Box, Heading, Input, Button, VStack, HStack, Text } from '@chakra-ui/react';
 import { useExamStore } from '../../stores/examStore';
 import { useRouter } from 'next/navigation';
 
 export default function Exams() {
-  const { exams } = useExamStore();
+  const { exams } = useExamStore(); // Lấy đề thi từ store
   const [search, setSearch] = useState('');
   const router = useRouter();
 
@@ -29,7 +28,7 @@ export default function Exams() {
             <Text fontWeight="bold">{e.subject}</Text>
             <Text>{e.name}</Text>
             <Text fontSize="sm" color="gray.500">{e.date}</Text>
-            <Text fontSize="sm">Câu hỏi: {e.questions.join(', ')}</Text> {/* Hiển thị ID câu hỏi */}
+            <Text fontSize="sm">Câu hỏi: {e.questions.join(', ')}</Text>
           </Box>
         ))}
       </VStack>

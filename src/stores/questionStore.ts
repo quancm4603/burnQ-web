@@ -1,4 +1,4 @@
-import {create} from 'zustand';
+import { create } from 'zustand';
 
 interface Question {
   id: number;
@@ -13,6 +13,7 @@ interface Question {
 interface QuestionStore {
   questions: Question[];
   addQuestion: (question: Question) => void;
+  initializeQuestions: (initialQuestions: Question[]) => void; // Thêm hàm khởi tạo
 }
 
 export const useQuestionStore = create<QuestionStore>((set) => ({
@@ -20,4 +21,5 @@ export const useQuestionStore = create<QuestionStore>((set) => ({
   addQuestion: (question) => set((state) => ({
     questions: [...state.questions, question],
   })),
+  initializeQuestions: (initialQuestions) => set({ questions: initialQuestions }), // Cập nhật câu hỏi
 }));

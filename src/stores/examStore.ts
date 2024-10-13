@@ -1,27 +1,23 @@
 import { create } from 'zustand';
-import { mockExams } from '../mock/mockData';
-
-interface Question {
-  id: number;
-  content: string;
-  answers: string[];
-  correctAnswer: number;
-}
 
 interface Exam {
-  id: number;
-  subject: string;
-  name: string;
-  date: string;
-  questions: number[];
+    id: number;
+    subject: string;
+    name: string;
+    date: string;
+    questions: number[]; // ID của câu hỏi
 }
 
-interface ExamState {
-  exams: Exam[];
-  addExam: (exam: Exam) => void;
+interface ExamStore {
+    exams: Exam[];
+    addExam: (exam: Exam) => void;
+    initializeExams: (initialExams: Exam[]) => void; // Nếu cần thiết
 }
 
-export const useExamStore = create<ExamState>((set) => ({
-  exams: mockExams,
-  addExam: (exam) => set((state) => ({ exams: [...state.exams, exam] })),
+export const useExamStore = create<ExamStore>((set) => ({
+    exams: [],
+    addExam: (exam) => set((state) => ({
+        exams: [...state.exams, exam],
+    })),
+    initializeExams: (initialExams) => set({ exams: initialExams }),
 }));
