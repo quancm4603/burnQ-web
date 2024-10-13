@@ -1,10 +1,11 @@
+// app/layout.tsx
 'use client';
 
-import { ChakraProvider } from '@chakra-ui/react'
-import Sidebar from '../components/Sidebar'
+import { ChakraProvider, Flex, Box, Container } from '@chakra-ui/react'
 import Header from '../components/Header'
-import Login from '../components/LoginForm' // Import the Login component
+import Login from '../components/LoginForm'
 import { useAuthStore } from '../stores/authStore'
+import 'katex/dist/katex.min.css';
 
 export default function RootLayout({
   children,
@@ -18,15 +19,16 @@ export default function RootLayout({
       <body>
         <ChakraProvider>
           {isLoggedIn ? (
-            <>
+            <Flex direction="column" minHeight="100vh">
               <Header />
-              <div style={{ display: 'flex' }}>
-                <Sidebar />
-                <main style={{ flexGrow: 1, padding: '20px' }}>{children}</main>
-              </div>
-            </>
+              <Box flex={1} bg="gray.50" py={8}>
+                <Container maxW="container.xl">
+                  {children}
+                </Container>
+              </Box>
+            </Flex>
           ) : (
-            <Login /> // Render the Login component if not logged in
+            <Login />
           )}
         </ChakraProvider>
       </body>

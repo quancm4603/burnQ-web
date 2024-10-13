@@ -1,14 +1,23 @@
-import { create } from 'zustand';
-import { mockQuestions } from '../mock/mockData';
+import {create} from 'zustand';
 
-interface QuestionState {
-  questions: any[];
-  addQuestion: (question: any) => void;
-  getQuestions: () => any[];
+interface Question {
+  id: number;
+  subject: string;
+  content: string;
+  chapter: string;
+  difficulty: string;
+  answers: string[];
+  correctAnswer: number;
 }
 
-export const useQuestionStore = create<QuestionState>((set, get) => ({
-  questions: mockQuestions,
-  addQuestion: (question) => set((state) => ({ questions: [...state.questions, question] })),
-  getQuestions: () => get().questions,
+interface QuestionStore {
+  questions: Question[];
+  addQuestion: (question: Question) => void;
+}
+
+export const useQuestionStore = create<QuestionStore>((set) => ({
+  questions: [],
+  addQuestion: (question) => set((state) => ({
+    questions: [...state.questions, question],
+  })),
 }));

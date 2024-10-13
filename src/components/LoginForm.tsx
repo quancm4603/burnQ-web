@@ -11,8 +11,10 @@ import {
   VStack,
   Heading,
   useToast,
+  Flex,
 } from '@chakra-ui/react';
 import { useAuthStore } from '../stores/authStore';
+import Image from 'next/image';
 
 export default function LoginForm() {
   const [username, setUsername] = useState('');
@@ -26,15 +28,15 @@ export default function LoginForm() {
     try {
       await login(username, password);
       toast({
-        title: 'Login successful',
+        title: 'Đăng nhập thành công',
         status: 'success',
         duration: 2000,
       });
       router.push('/dashboard');
     } catch (error) {
       toast({
-        title: 'Login failed',
-        description: 'Please check your credentials',
+        title: 'Đăng nhập thất bại',
+        description: 'Vui lòng kiểm tra thông tin đăng nhập của bạn',
         status: 'error',
         duration: 2000,
       });
@@ -42,28 +44,40 @@ export default function LoginForm() {
   };
 
   return (
-    <Box maxWidth="400px" margin="auto" mt={8}>
+    <Box
+      maxWidth="400px"
+      margin="auto"
+      mt={8}
+      opacity={1}
+      transform="translateY(0)"
+      transition="opacity 0.5s ease, transform 0.5s ease"
+    >
+      <Flex justify="center" mb={4}>
+        <Image src="/logo/logo.png" alt="Logo" width={100} height={100} />
+      </Flex>
       <form onSubmit={handleSubmit}>
         <VStack spacing={4}>
-          <Heading>Login</Heading>
+          <Heading textAlign="center">Đăng nhập vào BurnQ</Heading>
           <FormControl isRequired>
-            <FormLabel>Username</FormLabel>
+            <FormLabel>Tên đăng nhập</FormLabel>
             <Input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              placeholder="Nhập tên đăng nhập"
             />
           </FormControl>
           <FormControl isRequired>
-            <FormLabel>Password</FormLabel>
+            <FormLabel>Mật khẩu</FormLabel>
             <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="Nhập mật khẩu"
             />
           </FormControl>
           <Button type="submit" colorScheme="blue" width="full">
-            Login
+            Đăng nhập
           </Button>
         </VStack>
       </form>

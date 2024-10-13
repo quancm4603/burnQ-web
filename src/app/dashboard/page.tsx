@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Heading, Text, Button } from '@chakra-ui/react';
 import { useAuthStore } from '../../stores/authStore';
+import ScoreChart from '@/components/ScoreChart';
 
 export default function Dashboard() {
   const { isLoggedIn, user, logout } = useAuthStore();
@@ -21,12 +22,7 @@ export default function Dashboard() {
     <Box maxWidth="800px" margin="auto" mt={8}>
       <Heading mb={4}>Dashboard</Heading>
       <Text mb={4}>Welcome, {user?.username}!</Text>
-      <Button onClick={() => {
-        logout();
-        router.push('/login');
-      }}>
-        Logout
-      </Button>
+      <ScoreChart />
     </Box>
   );
 }
