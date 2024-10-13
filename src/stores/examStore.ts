@@ -1,14 +1,27 @@
 import { create } from 'zustand';
 import { mockExams } from '../mock/mockData';
 
-interface ExamState {
-  exams: any[];
-  addExam: (exam: any) => void;
-  getExams: () => any[];
+interface Question {
+  id: number;
+  content: string;
+  answers: string[];
+  correctAnswer: number;
 }
 
-export const useExamStore = create<ExamState>((set, get) => ({
+interface Exam {
+  id: number;
+  subject: string;
+  name: string;
+  date: string;
+  questions: number[];
+}
+
+interface ExamState {
+  exams: Exam[];
+  addExam: (exam: Exam) => void;
+}
+
+export const useExamStore = create<ExamState>((set) => ({
   exams: mockExams,
   addExam: (exam) => set((state) => ({ exams: [...state.exams, exam] })),
-  getExams: () => get().exams,
 }));

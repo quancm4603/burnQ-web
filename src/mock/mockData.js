@@ -56,7 +56,7 @@ export const mockQuestions = [
     chapter: 'Chương 3',
     difficulty: 'Trung bình',
     answers: ['$H-O-S(=O)₂-O-H$', '$H-O-S(=O)₂-O-H$', '$H-O-S(=O)₂-O-H$', '$H-O-S(=O)₂-O-H$'],
-    correctAnswer: 1
+    correctAnswer: 0
   },
   {
     id: 7,
@@ -65,15 +65,44 @@ export const mockQuestions = [
     chapter: 'Chương 5',
     difficulty: 'Khó',
     answers: ['$e^x (sin x + cos x)$', '$e^x (sin x - cos x)$', '$e^x (sin x + cos x)$', '$e^x (sin x - cos x)$'],
-    correctAnswer: 2
+    correctAnswer: 0
+  },
+  {
+    id: 8,
+    subject: 'Toán',
+    content: 'Giải bất phương trình: $2x - 3 < 5$',
+    chapter: 'Chương 1',
+    difficulty: 'Dễ',
+    answers: ['$x < 4$', '$x > 4$', '$x < 3$', '$x > 3$'],
+    correctAnswer: 0
+  },
+  {
+    id: 9,
+    subject: 'Hóa học',
+    content: 'Nêu các loại liên kết hóa học và ví dụ cho mỗi loại.',
+    chapter: 'Chương 2',
+    difficulty: 'Trung bình',
+    answers: ['Liên kết ion, ví dụ: NaCl; Liên kết cộng hóa trị, ví dụ: H₂O', 'Liên kết ion, ví dụ: H₂O; Liên kết cộng hóa trị, ví dụ: CO₂', 'Liên kết kim loại, ví dụ: Fe; Liên kết ion, ví dụ: NaCl', 'Liên kết ion, ví dụ: MgO; Liên kết cộng hóa trị, ví dụ: CH₄'],
+    correctAnswer: 0
+  },
+  {
+    id: 10,
+    subject: 'Vật lý',
+    content: 'Mô tả nguyên lý bảo toàn năng lượng.',
+    chapter: 'Chương 1',
+    difficulty: 'Khó',
+    answers: ['Năng lượng không thể tự sinh ra hoặc bị tiêu hủy, chỉ có thể chuyển đổi từ dạng này sang dạng khác.', 'Năng lượng có thể sinh ra từ không khí.', 'Năng lượng có thể bị tiêu hủy trong các phản ứng hóa học.', 'Năng lượng được tạo ra từ phản ứng hạt nhân.'],
+    correctAnswer: 0
   },
 ];
 
 export const mockExams = [
-  { id: 1, subject: 'Toán 10', name: 'Thi giữa kì', date: '12/01/2023' },
-  { id: 2, subject: 'Toán 11', name: 'Ôn tập cuối kì 1', date: '27/04/2023' },
-  { id: 3, subject: 'Toán 10', name: 'Ôn tập cuối kì 1', date: '29/04/2023' },
-  { id: 4, subject: 'Hóa học 10', name: 'Ôn tập cuối kì 2', date: '25/07/2023' },
+  { id: 1, subject: 'Toán 10', name: 'Thi giữa kì', date: '12/01/2023', questions: [1, 4, 8] },
+  { id: 2, subject: 'Toán 11', name: 'Ôn tập cuối kì 1', date: '27/04/2023', questions: [2, 5, 7] },
+  { id: 3, subject: 'Toán 10', name: 'Ôn tập cuối kì 1', date: '29/04/2023', questions: [3, 9] },
+  { id: 4, subject: 'Hóa học 10', name: 'Ôn tập cuối kì 2', date: '25/07/2023', questions: [6, 10] },
+  { id: 5, subject: 'Vật lý 11', name: 'Ôn tập giữa kì 2', date: '15/11/2023', questions: [2, 5, 9] },
+  { id: 6, subject: 'Hóa học 11', name: 'Ôn tập cuối kì 1', date: '30/12/2023', questions: [3, 6, 10] },
 ];
 
 export const mockScores = [
