@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import {
     Box, Heading, Input, Button, VStack, HStack, Text, 
-    Checkbox, Stack, Flex, InputGroup, InputLeftElement, Divider, Tag, TagCloseButton
+    Checkbox, Stack, Flex, InputGroup, InputLeftElement, Divider, Tag, TagCloseButton,
+    Select
 } from '@chakra-ui/react';
 import { SearchIcon } from '@chakra-ui/icons';
 import { useExamStore } from '../../../stores/examStore';
@@ -18,6 +19,11 @@ export default function CreateExam() {
     const [newExam, setNewExam] = useState({ subject: '', name: '', date: '', questions: [] });
     const [selectedQuestions, setSelectedQuestions] = useState<number[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Bộ lọc
+    const [filters, setFilters] = useState<{ subjects: string[], difficulties: string[] }>({ subjects: [], difficulties: [] });
+    const uniqueSubjects = Array.from(new Set(mockQuestions.map(q => q.subject)));
+    const uniqueDifficulties = Array.from(new Set(mockQuestions.map(q => q.difficulty)));
 
     // Hàm render nội dung toán học
     const renderMathContent = (content: string) => {
@@ -51,8 +57,26 @@ export default function CreateExam() {
 
     const filteredQuestions = mockQuestions.filter(question => 
         question.content.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        (!filters.subjects.length || filters.subjects.includes(question.subject)) &&
+        (!filters.difficulties.length || filters.difficulties.includes(question.difficulty)) &&
         !selectedQuestions.includes(question.id) // Ẩn câu hỏi đã chọn
     );
+
+    const handleFilterChange = (filterType: 'subjects' | 'difficulties', value: string) => {
+        setFilters(prev => ({
+            ...prev,
+            [filterType]: prev[filterType].includes(value)
+                ? prev[filterType].filter(item => item !== value)
+                : [...prev[filterType], value]
+        }));
+    };
+
+    const removeFilter = (key: 'subjects' | 'difficulties', value: string) => {
+        setFilters(prev => ({
+            ...prev,
+            [key]: prev[key].filter(item => item !== value)
+        }));
+    };
 
     return (
         <Box p={5}>
@@ -76,19 +100,49 @@ export default function CreateExam() {
                 />
             </VStack>
 
+            {/* Thanh tìm kiếm và bộ lọc */}
+            <Flex mt={5} alignItems="center" flexWrap="wrap" gap={2}>
+                <InputGroup size="md" maxWidth="300px">
+                    <InputLeftElement pointerEvents="none">
+                        <SearchIcon color="gray.300" />
+                    </InputLeftElement>
+                    <Input 
+                        placeholder="Tìm kiếm câu hỏi" 
+                        value={searchTerm} 
+                        onChange={(e) => setSearchTerm(e.target.value)} 
+                    />
+                </InputGroup>
+                <Select placeholder="Môn học" onChange={(e) => handleFilterChange('subjects', e.target.value)} maxWidth="150px">
+                    {uniqueSubjects.map(subject => (
+                        <option key={subject} value={subject}>{subject}</option>
+                    ))}
+                </Select>
+                <Select placeholder="Độ khó" onChange={(e) => handleFilterChange('difficulties', e.target.value)} maxWidth="150px">
+                    {uniqueDifficulties.map(difficulty => (
+                        <option key={difficulty} value={difficulty}>{difficulty}</option>
+                    ))}
+                </Select>
+                <HStack spacing={2} flexWrap="wrap">
+                    {/* Hiển thị các tag đã chọn cho môn học và độ khó */}
+                    {filters.subjects.map(subject => (
+                        <Tag key={`subject-${subject}`} size="md" borderRadius="full" variant="solid" colorScheme="blue">
+                            {subject}
+                            <TagCloseButton onClick={() => removeFilter('subjects', subject)} />
+                        </Tag>
+                    ))}
+                    {filters.difficulties.map(difficulty => (
+                        <Tag key={`difficulty-${difficulty}`} size="md" borderRadius="full" variant="solid" colorScheme="blue">
+                            {difficulty}
+                            <TagCloseButton onClick={() => removeFilter('difficulties', difficulty)} />
+                        </Tag>
+                    ))}
+                </HStack>
+            </Flex>
+
             <Flex mt={5} align="flex-start">
                 {/* Cột tìm kiếm */}
                 <Box flex="1" mr={5}>
-                    <InputGroup size="md">
-                        <InputLeftElement pointerEvents="none">
-                            <SearchIcon color="gray.300" />
-                        </InputLeftElement>
-                        <Input 
-                            placeholder="Tìm kiếm câu hỏi" 
-                            value={searchTerm} 
-                            onChange={(e) => setSearchTerm(e.target.value)} 
-                        />
-                    </InputGroup>
+                <Heading size="md" mb={2}>Tìm kiếm</Heading>
                     <Stack spacing={2} mt={4} maxHeight="400px" overflowY="auto" borderWidth={1} borderRadius="md" p={3}>
                         {filteredQuestions.map(question => (
                             <Checkbox 

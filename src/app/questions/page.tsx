@@ -11,9 +11,10 @@ import { useRouter } from 'next/navigation';
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
 import { useQuestionStore } from '@/stores/questionStore'; // Import store
+import { mockQuestions } from '@/mock/mockData';
 
 export default function Questions() {
-    const { questions } = useQuestionStore(); // Lấy câu hỏi từ store
+    const { questions, initializeQuestions } = useQuestionStore(); // Lấy câu hỏi từ store
     const [search, setSearch] = useState('');
     const router = useRouter();
     
