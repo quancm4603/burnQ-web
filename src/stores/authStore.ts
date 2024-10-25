@@ -1,9 +1,13 @@
 import { create } from 'zustand';
 import { mockUsers } from '../mock/mockData';
+import { AuthApi, LoginRequest, UserApi } from '../../api';
+import axios from 'axios';
 
 interface AuthState {
-  user: { id: number; username: string; name: string; role: string } | null;
+  user: { fullName: string; phoneNumber: string; email: string; avatarUrl: string } | null;
+  token: string | null;
   isLoggedIn: boolean;
+  checkLoginStatus: () => void;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -11,12 +15,40 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isLoggedIn: false,
-  login: async (username, password) => {
-    const user = mockUsers.find(u => u.username === username && u.password === password);
+  token: null,
+  checkLoginStatus: () => {
+    const user = localStorage.getItem('user');
     if (user) {
-      set({ user: { id: user.id, username: user.username, name: user.name, role: user.role }, isLoggedIn: true });
-    } else {
-      throw new Error('Invalid credentials');
+      set({ user: JSON.parse(user), isLoggedIn: true });
+    }
+  },
+  login: async (username, password) => {
+    const loginRequest: LoginRequest = { username, password }; 
+    try {
+      const authApi = new AuthApi();
+      const response = await authApi.apiAuthLoginPost(loginRequest);
+      const userData = response.data;
+      const token = userData.token;
+      if (!token) {
+        throw new Error('Invalid credentials');
+      }
+      set({ token: token });
+      const userApi = new UserApi();
+      const userResponse = await userApi.apiUserInfoGet({
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const user = userResponse.data;
+      set({ user: { fullName: user.fullName ?? '', phoneNumber: user.phoneNumber ?? '', email: user.email ?? '', avatarUrl: user.avatarUrl ?? '' }, isLoggedIn: true });
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || 'Invalid credentials');
+      } else {
+        throw new Error('An unexpected error occurred');
+      }
     }
   },
   logout: () => set({ user: null, isLoggedIn: false }),

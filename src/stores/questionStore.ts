@@ -13,7 +13,7 @@ interface Question {
 interface QuestionStore {
   questions: Question[];
   addQuestion: (question: Question) => void;
-  initializeQuestions: (initialQuestions: Question[]) => void; // Thêm hàm khởi tạo
+  initializeQuestions: (initialQuestions: Question[]) => void;
 }
 
 export const useQuestionStore = create<QuestionStore>((set) => ({
@@ -21,5 +21,5 @@ export const useQuestionStore = create<QuestionStore>((set) => ({
   addQuestion: (question) => set((state) => ({
     questions: [...state.questions, question],
   })),
-  initializeQuestions: (initialQuestions) => set({ questions: initialQuestions }), // Cập nhật câu hỏi
+  initializeQuestions: (initialQuestions) => set({ questions: initialQuestions }),
 }));
