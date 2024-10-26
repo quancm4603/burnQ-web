@@ -5,13 +5,13 @@ interface Exam {
     subject: string;
     name: string;
     date: string;
-    questions: number[]; // ID của câu hỏi
+    questions: number[];
 }
 
 interface ExamStore {
     exams: Exam[];
     addExam: (exam: Exam) => void;
-    initializeExams: (initialExams: Exam[]) => void; // Nếu cần thiết
+    initializeExams: (initialExams: Exam[]) => void;
 }
 
 export const useExamStore = create<ExamStore>((set) => ({

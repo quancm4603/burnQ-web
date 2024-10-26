@@ -15,10 +15,38 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isLoggedIn: false,
   token: null,
-  checkLoginStatus: () => {
-    const user = localStorage.getItem('user');
-    if (user) {
-      set({ user: JSON.parse(user), isLoggedIn: true });
+  checkLoginStatus: async () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const userApi = new UserApi();
+        const userResponse = await userApi.apiUserInfoGet({
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        const user = userResponse.data;
+        set({
+          user: {
+            fullName: user.fullName ?? '',
+            phoneNumber: user.phoneNumber ?? '',
+            email: user.email ?? '',
+            avatarUrl: user.avatarUrl ?? '',
+          },
+          token: token,
+          isLoggedIn: true,
+        });
+        localStorage.setItem('user', JSON.stringify(user));
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          // Token expired or invalid
+          set({ user: null, token: null, isLoggedIn: false });
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        } else {
+          console.error('An unexpected error occurred:', error);
+        }
+      }
     }
   },
   login: async (username, password) => {

@@ -21,7 +21,7 @@ export default function Dashboard() {
   return (
     <Box maxWidth="800px" margin="auto" mt={8}>
       <Heading mb={4}>Dashboard</Heading>
-      <Text mb={4}>Welcome, {user?.username}!</Text>
+      <Text mb={4}>Welcome, {user?.fullName}!</Text>
       <ScoreChart />
     </Box>
   );

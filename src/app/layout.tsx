@@ -1,15 +1,11 @@
-// app/layout.tsx
 "use client";
 
-import { ChakraProvider, Flex, Box, Container } from "@chakra-ui/react";
+import { ChakraProvider, Flex, Box, Container, Spinner } from "@chakra-ui/react";
 import Header from "../components/Header";
 import Login from "../components/LoginForm";
 import { useAuthStore } from "../stores/authStore";
 import "katex/dist/katex.min.css";
 import { useEffect, useState } from "react";
-import { useQuestionStore } from "../stores/questionStore";
-import { useExamStore } from "@/stores/examStore";
-import { mockExams, mockQuestions } from "@/mock/mockData";
 
 export default function RootLayout({
   children,
@@ -17,39 +13,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const [isMounted, setIsMounted] = useState(false);
+  const [isCheckingLogin, setIsCheckingLogin] = useState(true);
   const { isLoggedIn, checkLoginStatus } = useAuthStore();
-  const { initializeQuestions } = useQuestionStore();
-  const { initializeExams } = useExamStore();
 
   useEffect(() => {
-
-    
-
-    checkLoginStatus();
-    initializeQuestions(mockQuestions);
-    initializeExams(mockExams);
-    setIsMounted(true);
+    const initialize = async () => {
+      await checkLoginStatus();
+      setIsCheckingLogin(false);
+      setIsMounted(true);
+    };
+    initialize();
   }, []);
 
-  
-  if (!isMounted) {
-    return null;
-  }
-
-  if (isLoggedIn) {
+  if (!isMounted || isCheckingLogin) {
     return (
       <html lang="en">
-        <body>
-          <ChakraProvider>
-            <Flex direction="column" minHeight="100vh">
-              <Header />
-              <Box flex={1} bg="gray.50" py={8}>
-                <Container maxW="container.xl">{children}</Container>
-              </Box>
-            </Flex>
-          </ChakraProvider>
-        </body>
-      </html>
+      <body>
+      <Flex justify="center" align="center" height="100vh">
+        <Spinner size="xl" color="blue.500" />
+      </Flex>
+      </body>
+    </html>
     );
   }
 
@@ -57,7 +41,16 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ChakraProvider>
+          {isLoggedIn ? (
+            <Flex direction="column" minHeight="100vh">
+              <Header />
+              <Box flex={1} bg="gray.50" py={8}>
+                <Container maxW="container.xl">{children}</Container>
+              </Box>
+            </Flex>
+          ) : (
             <Login />
+          )}
         </ChakraProvider>
       </body>
     </html>
