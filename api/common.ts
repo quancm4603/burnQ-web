@@ -22,7 +22,7 @@ import { RequiredError } from "./base";
  *
  * @export
  */
-export const DUMMY_BASE_URL = 'https://example.com'
+export const DUMMY_BASE_URL = process.env.API_END_POINT
 
 /**
  *

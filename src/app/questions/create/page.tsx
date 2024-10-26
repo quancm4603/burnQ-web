@@ -6,7 +6,7 @@ import {
   Heading,
   Input,
   Button,
-VStack,
+  VStack,
   HStack,
   Text,
   Select,
@@ -20,6 +20,8 @@ import { useQuestionStore } from "../../../stores/questionStore";
 import { useRouter } from "next/navigation";
 import "katex/dist/katex.min.css";
 import { InlineMath, BlockMath } from "react-katex";
+import { QuestionApi } from "../../../../api";
+import { useAuthStore } from "@/stores/authStore";
 
 const mathSymbols = [
   { symbol: "+", latex: "+" },
@@ -60,18 +62,21 @@ const mathSymbols = [
 
 export default function CreateQuestion() {
   const [question, setQuestion] = useState({
-    subject: "",
+    subjectId: 0, 
     content: "",
-    chapter: "",
-    difficulty: "",
+    chapterId: 0,
+    difficultyId: 0,
     answers: ["", ""],
-    correctAnswer: 0,
+    correctAnswers: [] as number[],
+    blobUrls: [],
   });
   const [showSymbols, setShowSymbols] = useState(false);
   const { addQuestion } = useQuestionStore();
   const router = useRouter();
   const toast = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const questionApi = new QuestionApi(); // Create an instance of QuestionApi
+  const { token } = useAuthStore();
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setQuestion({ ...question, content: e.target.value });
@@ -87,12 +92,12 @@ export default function CreateQuestion() {
     setQuestion({ ...question, answers: [...question.answers, ""] });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (
-      !question.subject ||
+      question.subjectId === 0 ||
       !question.content ||
-      !question.chapter ||
-      !question.difficulty
+      question.chapterId === 0 ||
+      question.difficultyId === 0
     ) {
       toast({
         title: "Lỗi",
@@ -103,15 +108,43 @@ export default function CreateQuestion() {
       });
       return;
     }
-    addQuestion({ ...question, id: Date.now() });
-    toast({
-      title: "Thành công",
-      description: "Câu hỏi đã được tạo",
-      status: "success",
-      duration: 3000,
-      isClosable: true,
-    });
-    router.push("/questions");
+
+    try {
+      const response = await questionApi.apiQuestionCreatePost(question, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (response.status === 201) {
+        addQuestion(question);
+        toast({
+          title: "Thành công",
+          description: "Câu hỏi đã được tạo",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+        router.push("/questions");
+      } else {
+        toast({
+          title: "Lỗi",
+          description: "Đã xảy ra lỗi khi tạo câu hỏi. Vui lòng thử lại.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      console.error("Error creating question:", error);
+      toast({
+        title: "Lỗi",
+        description: "Đã xảy ra lỗi khi tạo câu hỏi",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   const insertSymbol = (latex: string) => {
@@ -120,7 +153,6 @@ export default function CreateQuestion() {
       const end = textareaRef.current.selectionEnd;
       const text = question.content;
 
-      // Kiểm tra xem con trỏ có đang nằm trong cặp dấu $$ không
       const beforeCursor = text.substring(0, start);
       const afterCursor = text.substring(end);
       const lastDollarBeforeCursor = beforeCursor.lastIndexOf("$$");
@@ -134,18 +166,15 @@ export default function CreateQuestion() {
       let newCursorPosition: number;
 
       if (isInsideMathBlock) {
-        // Nếu con trỏ đang trong cặp $$, chỉ chèn latex
         newText = beforeCursor + latex + afterCursor;
         newCursorPosition = start + latex.length;
       } else {
-        // Nếu con trỏ không trong cặp $$, bọc latex trong $$
         newText = beforeCursor + "$" + latex + "$" + afterCursor;
         newCursorPosition = start + latex.length + 1; // +2 để đặt con trỏ trước $$ cuối cùng
       }
 
       setQuestion({ ...question, content: newText });
 
-      // Đặt lại vị trí con trỏ
       setTimeout(() => {
         if (textareaRef.current) {
           textareaRef.current.selectionStart = textareaRef.current.selectionEnd = newCursorPosition;
@@ -162,21 +191,21 @@ export default function CreateQuestion() {
         <HStack spacing={4}>
           <Select
             placeholder="Chọn danh mục"
-            value={question.subject}
+            value={question.subjectId || ""}
             onChange={(e) =>
-              setQuestion({ ...question, subject: e.target.value })
+              setQuestion({ ...question, subjectId: Number(e.target.value) })
             }
           >
-            <option value="Toán">Toán</option>
-            <option value="Lý">Lý</option>
-            <option value="Hóa">Hóa</option>
+            <option value="1">Toán</option>
+            <option value="2">Lý</option>
+            <option value="3">Hóa</option>
           </Select>
 
           <Select
             placeholder="Chọn khối lớp"
-            value={question.chapter}
+            value={question.chapterId || ""}
             onChange={(e) =>
-              setQuestion({ ...question, chapter: e.target.value })
+              setQuestion({ ...question, chapterId: Number(e.target.value) })
             }
           >
             <option value="10">Lớp 10</option>
@@ -218,51 +247,50 @@ export default function CreateQuestion() {
               } else if (part.startsWith("$") && part.endsWith("$")) {
                 return <InlineMath key={index} math={part.slice(1, -1)} />;
               } else {
-                return <span key={index}>{part}</span>;
+                return <Text key={index}>{part}</Text>;
               }
             })}
         </Box>
 
-        <Heading size="md" mb={4}>
-          Tạo câu trả lời
-        </Heading>
-        <Wrap spacing={4}>
+        {question.answers.map((answer, index) => (
+          <Input
+            key={index}
+            placeholder={`Đáp án ${index + 1}`}
+            value={answer}
+            onChange={(e) => handleAnswerChange(index, e.target.value)}
+          />
+        ))}
+
+        <Button onClick={handleAddAnswer}>Thêm đáp án</Button>
+
+        <Select
+          placeholder="Chọn đáp án đúng"
+          multiple
+          onChange={(e) => {
+            const selectedOptions = Array.from(e.target.selectedOptions, (option) => Number(option.value));
+            setQuestion({ ...question, correctAnswers: selectedOptions });
+          }}
+        >
           {question.answers.map((answer, index) => (
-            <WrapItem key={index} width="calc(50% - 8px)">
-              <HStack width="100%">
-                <Checkbox
-                  isChecked={question.correctAnswer === index}
-                  onChange={() =>
-                    setQuestion({ ...question, correctAnswer: index })
-                  }
-                />
-                <Input
-                  placeholder={`Câu trả lời ${index + 1}`}
-                  value={answer}
-                  onChange={(e) => handleAnswerChange(index, e.target.value)}
-                  flex={1}
-                />
-              </HStack>
-            </WrapItem>
+            <option key={index} value={index}>
+              Đáp án {index + 1}
+            </option>
           ))}
-        </Wrap>
-        <Button mt={4} onClick={handleAddAnswer}>
-          Thêm câu trả lời
-        </Button>
+        </Select>
 
         <Select
           placeholder="Chọn độ khó"
-          value={question.difficulty}
+          value={question.difficultyId || ""}
           onChange={(e) =>
-            setQuestion({ ...question, difficulty: e.target.value })
+            setQuestion({ ...question, difficultyId: Number(e.target.value) })
           }
         >
-          <option value="Dễ">Dễ</option>
-          <option value="Trung bình">Trung bình</option>
-          <option value="Khó">Khó</option>
+          <option value="1">Dễ</option>
+          <option value="2">Trung bình</option>
+          <option value="3">Khó</option>
         </Select>
 
-        <Button colorScheme="blue" onClick={handleSubmit}>
+        <Button colorScheme="teal" onClick={handleSubmit}>
           Tạo câu hỏi
         </Button>
       </VStack>

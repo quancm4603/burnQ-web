@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { QuestionResponse } from '../../api';
 
 interface Question {
   id: number;
@@ -11,9 +12,9 @@ interface Question {
 }
 
 interface QuestionStore {
-  questions: Question[];
-  addQuestion: (question: Question) => void;
-  initializeQuestions: (initialQuestions: Question[]) => void;
+  questions: QuestionResponse[];
+  addQuestion: (question: QuestionResponse) => void;
+  initializeQuestions: (initialQuestions: QuestionResponse[]) => void;
 }
 
 export const useQuestionStore = create<QuestionStore>((set) => ({

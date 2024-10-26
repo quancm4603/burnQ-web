@@ -1,20 +1,33 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Box, Heading, Text, Button } from '@chakra-ui/react';
-import { useAuthStore } from '../../stores/authStore';
-import ScoreChart from '@/components/ScoreChart';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Box, Heading, Text, Button, Spinner } from "@chakra-ui/react"; // Thêm Spinner
+import { useAuthStore } from "../../stores/authStore";
+import ScoreChart from "@/components/ScoreChart";
+import { QuestionApi } from "../../../api";
 
 export default function Dashboard() {
-  const { isLoggedIn, user, logout } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(true);
+  const { isLoggedIn, user, logout, token } = useAuthStore();
   const router = useRouter();
+  const questionApi = new QuestionApi();
 
   useEffect(() => {
     if (!isLoggedIn) {
-      router.push('/login');
+      router.push("/login");
+      return;
     }
-  }, [isLoggedIn, router]);
+    setIsLoading(false);
+  }, [isLoggedIn, router, token]);
+
+  if (isLoading) {
+    return (
+      <Box textAlign="center" mt={8}>
+        <Spinner size="lg" />
+      </Box>
+    );
+  }
 
   if (!isLoggedIn) return null;
 

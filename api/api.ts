@@ -680,10 +680,10 @@ export interface LoginResponse {
 export interface PagedQuestionResponse {
     /**
      * 
-     * @type {Array<Question>}
+     * @type {Array<QuestionResponse>}
      * @memberof PagedQuestionResponse
      */
-    'questions'?: Array<Question> | null;
+    'questions'?: Array<QuestionResponse> | null;
     /**
      * 
      * @type {number}
@@ -881,6 +881,67 @@ export interface Question {
      * @memberof Question
      */
     'examQuestions'?: Array<ExamQuestion> | null;
+}
+/**
+ * 
+ * @export
+ * @interface QuestionResponse
+ */
+export interface QuestionResponse {
+    /**
+     * 
+     * @type {number}
+     * @memberof QuestionResponse
+     */
+    'id'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof QuestionResponse
+     */
+    'content'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof QuestionResponse
+     */
+    'subject'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof QuestionResponse
+     */
+    'chapterName'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof QuestionResponse
+     */
+    'difficultyLevel'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof QuestionResponse
+     */
+    'teacherName'?: string | null;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof QuestionResponse
+     */
+    'answers'?: Array<string> | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof QuestionResponse
+     */
+    'answersJson'?: string | null;
+    /**
+     * 
+     * @type {Array<number>}
+     * @memberof QuestionResponse
+     */
+    'correctAnswer'?: Array<number> | null;
 }
 /**
  * 
@@ -2297,6 +2358,54 @@ export const QuestionApiAxiosParamCreator = function (configuration?: Configurat
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @param {string} [searchQuery] 
+         * @param {number} [page] 
+         * @param {number} [pageSize] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiQuestionTeacherGet: async (searchQuery?: string, page?: number, pageSize?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/Question/teacher`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (searchQuery !== undefined) {
+                localVarQueryParameter['searchQuery'] = searchQuery;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (pageSize !== undefined) {
+                localVarQueryParameter['pageSize'] = pageSize;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -2325,7 +2434,7 @@ export const QuestionApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiQuestionIdGet(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Question>> {
+        async apiQuestionIdGet(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<QuestionResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.apiQuestionIdGet(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['QuestionApi.apiQuestionIdGet']?.[localVarOperationServerIndex]?.url;
@@ -2343,6 +2452,20 @@ export const QuestionApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.apiQuestionSearchGet(searchQuery, page, pageSize, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['QuestionApi.apiQuestionSearchGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} [searchQuery] 
+         * @param {number} [page] 
+         * @param {number} [pageSize] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiQuestionTeacherGet(searchQuery?: string, page?: number, pageSize?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PagedQuestionResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiQuestionTeacherGet(searchQuery, page, pageSize, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['QuestionApi.apiQuestionTeacherGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -2370,7 +2493,7 @@ export const QuestionApiFactory = function (configuration?: Configuration, baseP
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiQuestionIdGet(id: number, options?: RawAxiosRequestConfig): AxiosPromise<Question> {
+        apiQuestionIdGet(id: number, options?: RawAxiosRequestConfig): AxiosPromise<QuestionResponse> {
             return localVarFp.apiQuestionIdGet(id, options).then((request) => request(axios, basePath));
         },
         /**
@@ -2383,6 +2506,17 @@ export const QuestionApiFactory = function (configuration?: Configuration, baseP
          */
         apiQuestionSearchGet(searchQuery?: string, page?: number, pageSize?: number, options?: RawAxiosRequestConfig): AxiosPromise<PagedQuestionResponse> {
             return localVarFp.apiQuestionSearchGet(searchQuery, page, pageSize, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {string} [searchQuery] 
+         * @param {number} [page] 
+         * @param {number} [pageSize] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiQuestionTeacherGet(searchQuery?: string, page?: number, pageSize?: number, options?: RawAxiosRequestConfig): AxiosPromise<PagedQuestionResponse> {
+            return localVarFp.apiQuestionTeacherGet(searchQuery, page, pageSize, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -2427,6 +2561,19 @@ export class QuestionApi extends BaseAPI {
      */
     public apiQuestionSearchGet(searchQuery?: string, page?: number, pageSize?: number, options?: RawAxiosRequestConfig) {
         return QuestionApiFp(this.configuration).apiQuestionSearchGet(searchQuery, page, pageSize, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {string} [searchQuery] 
+     * @param {number} [page] 
+     * @param {number} [pageSize] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof QuestionApi
+     */
+    public apiQuestionTeacherGet(searchQuery?: string, page?: number, pageSize?: number, options?: RawAxiosRequestConfig) {
+        return QuestionApiFp(this.configuration).apiQuestionTeacherGet(searchQuery, page, pageSize, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

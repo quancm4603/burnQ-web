@@ -4,28 +4,55 @@ import { useState, useEffect } from 'react';
 import {
     Box, Heading, Input, Button, VStack, HStack, Text, 
     Select, Flex, Tag, TagCloseButton,
-    InputGroup, InputLeftElement, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon
+    InputGroup, InputLeftElement, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon, Spinner
 } from '@chakra-ui/react';
 import { SearchIcon } from '@chakra-ui/icons';
 import { useRouter } from 'next/navigation';
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
 import { useQuestionStore } from '@/stores/questionStore'; // Import store
+import { QuestionApi } from "../../../api"; // Giả sử bạn đã tạo QuestionApi để gọi API
+import { useAuthStore } from '@/stores/authStore';
 
 export default function Questions() {
     const { questions, initializeQuestions } = useQuestionStore(); // Lấy câu hỏi từ store
+    const { token } = useAuthStore(); // Lấy token từ store
     const [search, setSearch] = useState('');
     const router = useRouter();
-    
+
     // Các bộ lọc
     const [filters, setFilters] = useState<{ subjects: string[], difficulties: string[] }>({ subjects: [], difficulties: [] });
     const [activeFilters, setActiveFilters] = useState<{ key: string; value: string }[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [questionsPerPage, setQuestionsPerPage] = useState(5);
+    const [isLoading, setIsLoading] = useState(true); // Trạng thái để theo dõi quá trình tải
+
+    // Gọi API để lấy câu hỏi
+    const questionApi = new QuestionApi();
     
+    useEffect(() => {
+        const fetchQuestions = async () => {
+            try {
+                setIsLoading(true); // Bắt đầu quá trình tải
+                const response = await questionApi.apiQuestionTeacherGet("", 1, 100, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }); // Thay đổi thông số cho phù hợp
+                initializeQuestions(response.data.questions ?? []);
+            } catch (error) {
+                console.error("Error fetching questions:", error);
+            } finally {
+                setIsLoading(false); // Kết thúc quá trình tải
+            }
+        };
+
+        fetchQuestions();
+    }, [initializeQuestions]); // Chạy effect khi component mount
+
     // Extract unique values for filters
     const uniqueSubjects = Array.from(new Set(questions.map(q => q.subject)));
-    const uniqueDifficulties = Array.from(new Set(questions.map(q => q.difficulty)));
+    const uniqueDifficulties = Array.from(new Set(questions.map(q => q.difficultyLevel)));
 
     const normalizeString = (str: string) => {
         return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -33,11 +60,11 @@ export default function Questions() {
 
     const filteredQuestions = questions.filter(q => 
         (search === '' || 
-            normalizeString(q.subject).includes(normalizeString(search)) || 
-            normalizeString(q.content).includes(normalizeString(search))
+            normalizeString(q.subject ?? '').includes(normalizeString(search)) || 
+            normalizeString(q.content ?? '').includes(normalizeString(search))
         ) &&
-        (filters.subjects.length === 0 || filters.subjects.includes(q.subject)) &&
-        (filters.difficulties.length === 0 || filters.difficulties.includes(q.difficulty))
+        (filters.subjects.length === 0 || filters.subjects.includes(q.subject ?? '')) &&
+        (filters.difficulties.length === 0 || filters.difficulties.includes(q.difficultyLevel ?? ''))
     );
 
     const handleFilterChange = (filterType: 'subjects' | 'difficulties', value: string) => {
@@ -80,6 +107,14 @@ export default function Questions() {
     const totalPages = Math.ceil(filteredQuestions.length / questionsPerPage);
     const currentQuestions = filteredQuestions.slice((currentPage - 1) * questionsPerPage, currentPage * questionsPerPage);
 
+    if (isLoading) {
+        return (
+            <Box textAlign="center" mt={8}>
+              <Spinner size="lg" />
+            </Box>
+          );
+    }
+
     return (
         <Flex direction="column" minHeight="100vh">
             <Box flex="1">
@@ -97,12 +132,12 @@ export default function Questions() {
                     </InputGroup>
                     <Select placeholder="Môn học" size="md" maxWidth="150px" onChange={(e) => handleFilterChange('subjects', e.target.value)}>
                         {uniqueSubjects.map(subject => (
-                            <option key={subject} value={subject}>{subject}</option>
+                            <option key={subject} value={subject ?? ''}>{subject}</option>
                         ))}
                     </Select>
                     <Select placeholder="Độ khó" size="md" maxWidth="150px" onChange={(e) => handleFilterChange('difficulties', e.target.value)}>
                         {uniqueDifficulties.map(difficulty => (
-                            <option key={difficulty} value={difficulty}>{difficulty}</option>
+                            <option key={difficulty} value={difficulty ?? ''}>{difficulty}</option>
                         ))}
                     </Select>
                     <HStack spacing={2} flexWrap="wrap">
@@ -130,13 +165,13 @@ export default function Questions() {
                                     <AccordionButton _expanded={{ bg: 'blue.50' }}>
                                         <Box flex="1" textAlign="left">
                                             <Text fontWeight="bold">{q.subject}</Text>
-                                            <Text>{renderMathContent(q.content)}</Text>
+                                            <Text>{renderMathContent(q.content ?? '')}</Text>
                                             <HStack mt={2} spacing={2}>
-                                                <Tag size="sm">{q.chapter}</Tag>
+                                                <Tag size="sm">{q.chapterName ?? ''}</Tag>
                                                 <Tag size="sm" colorScheme={
-                                                    q.difficulty === 'Dễ' ? 'green' :
-                                                    q.difficulty === 'Trung bình' ? 'yellow' : 'red'
-                                                }>{q.difficulty}</Tag>
+                                                    q.difficultyLevel === 'Dễ' ? 'green' :
+                                                    q.difficultyLevel === 'Trung bình' ? 'yellow' : 'red'
+                                                }>{q.difficultyLevel}</Tag>
                                             </HStack>
                                         </Box>
                                         <AccordionIcon />
@@ -144,12 +179,12 @@ export default function Questions() {
                                 </h2>
                                 <AccordionPanel pb={4}>
                                     <VStack align="start" spacing={1}>
-                                        {q.answers.map((answer, index) => (
-                                            <Text key={index} color={index === q.correctAnswer ? 'green.500' : 'inherit'}>
-                                                {index === q.correctAnswer ? '✓ ' : ''}
+                                        {q.answers?.map((answer, index) => (
+                                            <Text key={index} color={q.correctAnswer?.includes(index) ? 'green.500' : 'inherit'}>
+                                                {q.correctAnswer?.includes(index) ? '✓ ' : ''}
                                                 {renderMathContent(answer)}
                                             </Text>
-                                        ))}
+                                        ))} 
                                     </VStack>
                                 </AccordionPanel>
                             </AccordionItem>

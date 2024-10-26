@@ -12,28 +12,26 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [isMounted, setIsMounted] = useState(false);
-  const [isCheckingLogin, setIsCheckingLogin] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const { isLoggedIn, checkLoginStatus } = useAuthStore();
 
   useEffect(() => {
     const initialize = async () => {
       await checkLoginStatus();
-      setIsCheckingLogin(false);
-      setIsMounted(true);
+      setIsLoading(false);
     };
     initialize();
-  }, []);
+  }, [checkLoginStatus]);
 
-  if (!isMounted || isCheckingLogin) {
+  if (isLoading) {
     return (
       <html lang="en">
-      <body>
-      <Flex justify="center" align="center" height="100vh">
-        <Spinner size="xl" color="blue.500" />
-      </Flex>
-      </body>
-    </html>
+        <body>
+            <Box textAlign="center" mt={8}>
+              <Spinner size="lg" />
+            </Box>
+        </body>
+      </html>
     );
   }
 
