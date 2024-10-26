@@ -150,6 +150,12 @@ export interface AppUser {
      * @memberof AppUser
      */
     'avatarUrl'?: string | null;
+    /**
+     * 
+     * @type {Array<Question>}
+     * @memberof AppUser
+     */
+    'questions'?: Array<Question> | null;
 }
 /**
  * 
@@ -171,10 +177,53 @@ export interface Chapter {
     'name': string;
     /**
      * 
+     * @type {number}
+     * @memberof Chapter
+     */
+    'subjectId'?: number;
+    /**
+     * 
+     * @type {Subject}
+     * @memberof Chapter
+     */
+    'subject'?: Subject;
+    /**
+     * 
      * @type {Array<Question>}
      * @memberof Chapter
      */
     'questions'?: Array<Question> | null;
+}
+/**
+ * 
+ * @export
+ * @interface ChapterResponse
+ */
+export interface ChapterResponse {
+    /**
+     * 
+     * @type {number}
+     * @memberof ChapterResponse
+     */
+    'id'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ChapterResponse
+     */
+    'name'?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof ChapterResponse
+     */
+    'subjectId'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ChapterResponse
+     */
+    'subjectName'?: string | null;
 }
 /**
  * 
@@ -256,6 +305,12 @@ export interface CreateChapterRequest {
      * @memberof CreateChapterRequest
      */
     'name'?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateChapterRequest
+     */
+    'subjectId'?: number;
 }
 /**
  * 
@@ -380,12 +435,6 @@ export interface CreateExamResponse {
 export interface CreateQuestionRequest {
     /**
      * 
-     * @type {number}
-     * @memberof CreateQuestionRequest
-     */
-    'subjectId': number;
-    /**
-     * 
      * @type {string}
      * @memberof CreateQuestionRequest
      */
@@ -446,6 +495,12 @@ export interface CreateSubjectRequest {
      * @memberof CreateSubjectRequest
      */
     'name'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateSubjectRequest
+     */
+    'teacherUsername'?: string | null;
 }
 /**
  * 
@@ -787,18 +842,6 @@ export interface Question {
     'id'?: number;
     /**
      * 
-     * @type {number}
-     * @memberof Question
-     */
-    'subjectId'?: number;
-    /**
-     * 
-     * @type {Subject}
-     * @memberof Question
-     */
-    'subject'?: Subject;
-    /**
-     * 
      * @type {string}
      * @memberof Question
      */
@@ -1051,16 +1094,71 @@ export interface Subject {
     'name': string;
     /**
      * 
+     * @type {string}
+     * @memberof Subject
+     */
+    'teacherId'?: string | null;
+    /**
+     * 
+     * @type {AppUser}
+     * @memberof Subject
+     */
+    'teacher'?: AppUser;
+    /**
+     * 
      * @type {Array<Question>}
      * @memberof Subject
      */
     'questions'?: Array<Question> | null;
     /**
      * 
+     * @type {Array<Chapter>}
+     * @memberof Subject
+     */
+    'chapters'?: Array<Chapter> | null;
+    /**
+     * 
      * @type {Array<Exam>}
      * @memberof Subject
      */
     'exams'?: Array<Exam> | null;
+}
+/**
+ * 
+ * @export
+ * @interface SubjectResponse
+ */
+export interface SubjectResponse {
+    /**
+     * 
+     * @type {number}
+     * @memberof SubjectResponse
+     */
+    'id'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof SubjectResponse
+     */
+    'name'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof SubjectResponse
+     */
+    'teacherId'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof SubjectResponse
+     */
+    'teacherUsername'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof SubjectResponse
+     */
+    'teacherFullName'?: string | null;
 }
 /**
  * 
@@ -1392,6 +1490,80 @@ export const ChapterApiAxiosParamCreator = function (configuration?: Configurati
     return {
         /**
          * 
+         * @param {number} subjectId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiChapterBySubjectSubjectIdGet: async (subjectId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'subjectId' is not null or undefined
+            assertParamExists('apiChapterBySubjectSubjectIdGet', 'subjectId', subjectId)
+            const localVarPath = `/api/Chapter/bySubject/{subjectId}`
+                .replace(`{${"subjectId"}}`, encodeURIComponent(String(subjectId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} username 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiChapterByusernameUsernameGet: async (username: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'username' is not null or undefined
+            assertParamExists('apiChapterByusernameUsernameGet', 'username', username)
+            const localVarPath = `/api/Chapter/byusername/{username}`
+                .replace(`{${"username"}}`, encodeURIComponent(String(username)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {CreateChapterRequest} [createChapterRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1421,6 +1593,72 @@ export const ChapterApiAxiosParamCreator = function (configuration?: Configurati
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(createChapterRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiChapterCurrentGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/Chapter/current`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiChapterGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/Chapter`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1476,6 +1714,30 @@ export const ChapterApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @param {number} subjectId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiChapterBySubjectSubjectIdGet(subjectId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ChapterResponse>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiChapterBySubjectSubjectIdGet(subjectId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ChapterApi.apiChapterBySubjectSubjectIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} username 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiChapterByusernameUsernameGet(username: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ChapterResponse>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiChapterByusernameUsernameGet(username, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ChapterApi.apiChapterByusernameUsernameGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @param {CreateChapterRequest} [createChapterRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1488,11 +1750,33 @@ export const ChapterApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiChapterCurrentGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ChapterResponse>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiChapterCurrentGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ChapterApi.apiChapterCurrentGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiChapterGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ChapterResponse>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiChapterGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ChapterApi.apiChapterGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiChapterIdGet(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Chapter>> {
+        async apiChapterIdGet(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ChapterResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.apiChapterIdGet(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ChapterApi.apiChapterIdGet']?.[localVarOperationServerIndex]?.url;
@@ -1510,6 +1794,24 @@ export const ChapterApiFactory = function (configuration?: Configuration, basePa
     return {
         /**
          * 
+         * @param {number} subjectId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiChapterBySubjectSubjectIdGet(subjectId: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<ChapterResponse>> {
+            return localVarFp.apiChapterBySubjectSubjectIdGet(subjectId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {string} username 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiChapterByusernameUsernameGet(username: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<ChapterResponse>> {
+            return localVarFp.apiChapterByusernameUsernameGet(username, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {CreateChapterRequest} [createChapterRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1519,11 +1821,27 @@ export const ChapterApiFactory = function (configuration?: Configuration, basePa
         },
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiChapterCurrentGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<ChapterResponse>> {
+            return localVarFp.apiChapterCurrentGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiChapterGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<ChapterResponse>> {
+            return localVarFp.apiChapterGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiChapterIdGet(id: number, options?: RawAxiosRequestConfig): AxiosPromise<Chapter> {
+        apiChapterIdGet(id: number, options?: RawAxiosRequestConfig): AxiosPromise<ChapterResponse> {
             return localVarFp.apiChapterIdGet(id, options).then((request) => request(axios, basePath));
         },
     };
@@ -1538,6 +1856,28 @@ export const ChapterApiFactory = function (configuration?: Configuration, basePa
 export class ChapterApi extends BaseAPI {
     /**
      * 
+     * @param {number} subjectId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ChapterApi
+     */
+    public apiChapterBySubjectSubjectIdGet(subjectId: number, options?: RawAxiosRequestConfig) {
+        return ChapterApiFp(this.configuration).apiChapterBySubjectSubjectIdGet(subjectId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {string} username 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ChapterApi
+     */
+    public apiChapterByusernameUsernameGet(username: string, options?: RawAxiosRequestConfig) {
+        return ChapterApiFp(this.configuration).apiChapterByusernameUsernameGet(username, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
      * @param {CreateChapterRequest} [createChapterRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1545,6 +1885,26 @@ export class ChapterApi extends BaseAPI {
      */
     public apiChapterCreatePost(createChapterRequest?: CreateChapterRequest, options?: RawAxiosRequestConfig) {
         return ChapterApiFp(this.configuration).apiChapterCreatePost(createChapterRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ChapterApi
+     */
+    public apiChapterCurrentGet(options?: RawAxiosRequestConfig) {
+        return ChapterApiFp(this.configuration).apiChapterCurrentGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ChapterApi
+     */
+    public apiChapterGet(options?: RawAxiosRequestConfig) {
+        return ChapterApiFp(this.configuration).apiChapterGet(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1921,6 +2281,39 @@ export const DifficultyApiAxiosParamCreator = function (configuration?: Configur
         },
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiDifficultyGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/Difficulty`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1980,6 +2373,17 @@ export const DifficultyApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiDifficultyGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<Difficulty>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiDifficultyGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DifficultyApi.apiDifficultyGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2011,6 +2415,14 @@ export const DifficultyApiFactory = function (configuration?: Configuration, bas
         },
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiDifficultyGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<Difficulty>> {
+            return localVarFp.apiDifficultyGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2037,6 +2449,16 @@ export class DifficultyApi extends BaseAPI {
      */
     public apiDifficultyCreatePost(createDifficultyRequest?: CreateDifficultyRequest, options?: RawAxiosRequestConfig) {
         return DifficultyApiFp(this.configuration).apiDifficultyCreatePost(createDifficultyRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DifficultyApi
+     */
+    public apiDifficultyGet(options?: RawAxiosRequestConfig) {
+        return DifficultyApiFp(this.configuration).apiDifficultyGet(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2587,6 +3009,43 @@ export const SubjectApiAxiosParamCreator = function (configuration?: Configurati
     return {
         /**
          * 
+         * @param {string} username 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiSubjectByusernameUsernameGet: async (username: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'username' is not null or undefined
+            assertParamExists('apiSubjectByusernameUsernameGet', 'username', username)
+            const localVarPath = `/api/Subject/byusername/{username}`
+                .replace(`{${"username"}}`, encodeURIComponent(String(username)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {CreateSubjectRequest} [createSubjectRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2616,6 +3075,39 @@ export const SubjectApiAxiosParamCreator = function (configuration?: Configurati
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(createSubjectRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiSubjectCurrentGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/Subject/current`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2671,6 +3163,18 @@ export const SubjectApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @param {string} username 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiSubjectByusernameUsernameGet(username: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<SubjectResponse>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiSubjectByusernameUsernameGet(username, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SubjectApi.apiSubjectByusernameUsernameGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @param {CreateSubjectRequest} [createSubjectRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2683,11 +3187,22 @@ export const SubjectApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiSubjectCurrentGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<SubjectResponse>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiSubjectCurrentGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SubjectApi.apiSubjectCurrentGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiSubjectIdGet(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Subject>> {
+        async apiSubjectIdGet(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SubjectResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.apiSubjectIdGet(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['SubjectApi.apiSubjectIdGet']?.[localVarOperationServerIndex]?.url;
@@ -2705,6 +3220,15 @@ export const SubjectApiFactory = function (configuration?: Configuration, basePa
     return {
         /**
          * 
+         * @param {string} username 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiSubjectByusernameUsernameGet(username: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<SubjectResponse>> {
+            return localVarFp.apiSubjectByusernameUsernameGet(username, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {CreateSubjectRequest} [createSubjectRequest] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2714,11 +3238,19 @@ export const SubjectApiFactory = function (configuration?: Configuration, basePa
         },
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiSubjectCurrentGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<SubjectResponse>> {
+            return localVarFp.apiSubjectCurrentGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {number} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiSubjectIdGet(id: number, options?: RawAxiosRequestConfig): AxiosPromise<Subject> {
+        apiSubjectIdGet(id: number, options?: RawAxiosRequestConfig): AxiosPromise<SubjectResponse> {
             return localVarFp.apiSubjectIdGet(id, options).then((request) => request(axios, basePath));
         },
     };
@@ -2733,6 +3265,17 @@ export const SubjectApiFactory = function (configuration?: Configuration, basePa
 export class SubjectApi extends BaseAPI {
     /**
      * 
+     * @param {string} username 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof SubjectApi
+     */
+    public apiSubjectByusernameUsernameGet(username: string, options?: RawAxiosRequestConfig) {
+        return SubjectApiFp(this.configuration).apiSubjectByusernameUsernameGet(username, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
      * @param {CreateSubjectRequest} [createSubjectRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2740,6 +3283,16 @@ export class SubjectApi extends BaseAPI {
      */
     public apiSubjectCreatePost(createSubjectRequest?: CreateSubjectRequest, options?: RawAxiosRequestConfig) {
         return SubjectApiFp(this.configuration).apiSubjectCreatePost(createSubjectRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof SubjectApi
+     */
+    public apiSubjectCurrentGet(options?: RawAxiosRequestConfig) {
+        return SubjectApiFp(this.configuration).apiSubjectCurrentGet(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

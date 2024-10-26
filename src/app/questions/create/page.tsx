@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Box,
   Heading,
@@ -15,12 +15,13 @@ import {
   useToast,
   Wrap,
   WrapItem,
+  Spinner,
 } from "@chakra-ui/react";
 import { useQuestionStore } from "../../../stores/questionStore";
 import { useRouter } from "next/navigation";
 import "katex/dist/katex.min.css";
 import { InlineMath, BlockMath } from "react-katex";
-import { QuestionApi } from "../../../../api";
+import { ChapterApi, ChapterResponse, QuestionApi } from "../../../../api";
 import { useAuthStore } from "@/stores/authStore";
 
 const mathSymbols = [
@@ -59,10 +60,13 @@ const mathSymbols = [
   { symbol: "↔", latex: "\\leftrightarrow" },
   { symbol: "Phân số", latex: "\\frac{a}{b}" },
 ];
-
+interface Subject {
+  id: number;
+  name: string | null;
+  chapters: ChapterResponse[];
+}
 export default function CreateQuestion() {
   const [question, setQuestion] = useState({
-    subjectId: 0, 
     content: "",
     chapterId: 0,
     difficultyId: 0,
@@ -70,12 +74,17 @@ export default function CreateQuestion() {
     correctAnswers: [] as number[],
     blobUrls: [],
   });
+  const [subjectId, setSubjectId] = useState<number | null>(null);
   const [showSymbols, setShowSymbols] = useState(false);
   const { addQuestion } = useQuestionStore();
   const router = useRouter();
   const toast = useToast();
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [chapters, setChapters] = useState<ChapterResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const questionApi = new QuestionApi(); // Create an instance of QuestionApi
+  const questionApi = new QuestionApi();
+  const chapterApi = new ChapterApi();
   const { token } = useAuthStore();
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -92,97 +101,147 @@ export default function CreateQuestion() {
     setQuestion({ ...question, answers: [...question.answers, ""] });
   };
 
-  const handleSubmit = async () => {
-    if (
-      question.subjectId === 0 ||
-      !question.content ||
-      question.chapterId === 0 ||
-      question.difficultyId === 0
-    ) {
-      toast({
-        title: "Lỗi",
-        description: "Vui lòng điền đầy đủ thông tin",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
+  const insertSymbol = (latex: string) => {
+    if (textareaRef.current) {
+      const start = textareaRef.current.selectionStart;
+      const end = textareaRef.current.selectionEnd;
+      const text = question.content;
+  
+      const beforeCursor = text.substring(0, start);
+      const afterCursor = text.substring(end);
+  
+      const lastDollarBeforeCursor = beforeCursor.lastIndexOf("$");
+      const nextDollarAfterCursor = afterCursor.indexOf("$");
+  
+      // Kiểm tra nếu con trỏ nằm trong cặp dấu $
+      const isInsideMathBlock =
+        lastDollarBeforeCursor !== -1 &&
+        nextDollarAfterCursor !== -1 &&
+        beforeCursor.substring(lastDollarBeforeCursor).split("$").length % 2 ===
+          0;
+  
+      // Kiểm tra xem con trỏ có nằm trong cặp {} của frac không
+      const lastFracIndex = beforeCursor.lastIndexOf("\\frac");
+      const lastBraceBeforeCursor = beforeCursor.lastIndexOf("{");
+      const isInsideFrac = lastFracIndex !== -1 && lastBraceBeforeCursor > lastFracIndex;
+  
+      let newText: string;
+      let newCursorPosition: number;
+  
+      if (isInsideMathBlock) {
+        if (isInsideFrac && latex === "\\frac") {
+          latex = "\\cfrac"; // Chuyển thành \cfrac nếu đang trong {}
+        }
+        newText = beforeCursor + latex + afterCursor;
+        newCursorPosition = start + latex.length;
+      } else {
+        // Nếu không, thêm cặp dấu $ mới
+        newText = beforeCursor + "$" + latex + "$" + afterCursor;
+        newCursorPosition = start + latex.length + 1; // +1 để đặt con trỏ trước dấu $ cuối
+      }
+  
+      setQuestion({ ...question, content: newText });
+  
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.selectionStart =
+            textareaRef.current.selectionEnd = newCursorPosition;
+          textareaRef.current.focus();
+        }
+      }, 0);
     }
+  };
+  
+  useEffect(() => {
+    const fetchSubjectsAndChapters = async () => {
+      try {
+        const subjectResponse = await chapterApi.apiChapterCurrentGet({
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
+        const chapters = subjectResponse.data as ChapterResponse[];
+        const subjectsMap = new Map<number, Subject>();
+
+        chapters.forEach((chapter) => {
+          const { subjectId, subjectName } = chapter;
+          if (subjectId && subjectName) {
+            if (!subjectsMap.has(subjectId)) {
+              subjectsMap.set(subjectId, {
+                id: subjectId,
+                name: subjectName,
+                chapters: [],
+              });
+            }
+            subjectsMap.get(subjectId)!.chapters.push(chapter);
+          }
+        });
+
+        setSubjects(Array.from(subjectsMap.values()));
+      } catch (error) {
+        console.error("Error fetching subjects:", error);
+        toast({
+          title: "Error",
+          description: "Could not fetch subjects",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (token) {
+      fetchSubjectsAndChapters();
+    }
+  }, [token]);
+
+  const handleSubjectChange = (id: number) => {
+    setSubjectId(id);
+    const selectedSubject = subjects.find((subject) => subject.id === id);
+    setChapters(selectedSubject ? selectedSubject.chapters : []);
+  };
+
+  const handleSubmit = async () => {
+    setIsLoading(true); // Show loading while submitting
     try {
       const response = await questionApi.apiQuestionCreatePost(question, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-  
       if (response.status === 201) {
         addQuestion(question);
         toast({
-          title: "Thành công",
-          description: "Câu hỏi đã được tạo",
+          title: "Success",
+          description: "Question created successfully",
           status: "success",
           duration: 3000,
           isClosable: true,
         });
         router.push("/questions");
       } else {
-        toast({
-          title: "Lỗi",
-          description: "Đã xảy ra lỗi khi tạo câu hỏi. Vui lòng thử lại.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
+        throw new Error("Unexpected response");
       }
     } catch (error) {
       console.error("Error creating question:", error);
       toast({
-        title: "Lỗi",
-        description: "Đã xảy ra lỗi khi tạo câu hỏi",
+        title: "Error",
+        description: "Failed to create question",
         status: "error",
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setIsLoading(false); // End loading after submit is complete
     }
   };
 
-  const insertSymbol = (latex: string) => {
-    if (textareaRef.current) {
-      const start = textareaRef.current.selectionStart;
-      const end = textareaRef.current.selectionEnd;
-      const text = question.content;
-
-      const beforeCursor = text.substring(0, start);
-      const afterCursor = text.substring(end);
-      const lastDollarBeforeCursor = beforeCursor.lastIndexOf("$$");
-      const nextDollarAfterCursor = afterCursor.indexOf("$$");
-      const isInsideMathBlock =
-        lastDollarBeforeCursor !== -1 &&
-        nextDollarAfterCursor !== -1 &&
-        beforeCursor.substring(lastDollarBeforeCursor).split("$$").length % 2 === 0;
-
-      let newText: string;
-      let newCursorPosition: number;
-
-      if (isInsideMathBlock) {
-        newText = beforeCursor + latex + afterCursor;
-        newCursorPosition = start + latex.length;
-      } else {
-        newText = beforeCursor + "$" + latex + "$" + afterCursor;
-        newCursorPosition = start + latex.length + 1; // +2 để đặt con trỏ trước $$ cuối cùng
-      }
-
-      setQuestion({ ...question, content: newText });
-
-      setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.selectionStart = textareaRef.current.selectionEnd = newCursorPosition;
-          textareaRef.current.focus();
-        }
-      }, 0);
-    }
-  };
+  if (isLoading) {
+    return (
+      <Box textAlign="center" mt={8}>
+        <Spinner size="lg" />
+      </Box>
+    );
+  }
 
   return (
     <Box maxWidth="800px" margin="auto" padding={4}>
@@ -190,27 +249,34 @@ export default function CreateQuestion() {
       <VStack spacing={4} align="stretch">
         <HStack spacing={4}>
           <Select
-            placeholder="Chọn danh mục"
-            value={question.subjectId || ""}
-            onChange={(e) =>
-              setQuestion({ ...question, subjectId: Number(e.target.value) })
-            }
+            value={subjectId || ""}
+            onChange={(e) => handleSubjectChange(Number(e.target.value))}
           >
-            <option value="1">Toán</option>
-            <option value="2">Lý</option>
-            <option value="3">Hóa</option>
+            <option value="" disabled>
+              Chọn môn học
+            </option>
+            {subjects.map((subject) => (
+              <option key={subject.id} value={subject.id}>
+                {subject.name}
+              </option>
+            ))}
           </Select>
 
           <Select
-            placeholder="Chọn khối lớp"
             value={question.chapterId || ""}
             onChange={(e) =>
               setQuestion({ ...question, chapterId: Number(e.target.value) })
             }
+            isDisabled={!subjectId}
           >
-            <option value="10">Lớp 10</option>
-            <option value="11">Lớp 11</option>
-            <option value="12">Lớp 12</option>
+            <option value="" disabled>
+              Chọn chương
+            </option>
+            {chapters.map((chapter) => (
+              <option key={chapter.id} value={chapter.id}>
+                {chapter.name}
+              </option>
+            ))}
           </Select>
         </HStack>
 
@@ -252,31 +318,36 @@ export default function CreateQuestion() {
             })}
         </Box>
 
-        {question.answers.map((answer, index) => (
-          <Input
-            key={index}
-            placeholder={`Đáp án ${index + 1}`}
-            value={answer}
-            onChange={(e) => handleAnswerChange(index, e.target.value)}
-          />
-        ))}
+        <Wrap spacing={4}>
+          {question.answers.map((answer, index) => (
+            <WrapItem key={index} width="calc(50% - 8px)">
+              <HStack width="100%">
+                <Checkbox
+                  isChecked={question.correctAnswers.includes(index)}
+                  onChange={() => {
+                    const newCorrectAnswers = question.correctAnswers.includes(
+                      index
+                    )
+                      ? question.correctAnswers.filter((i) => i !== index) // Remove if already checked
+                      : [...question.correctAnswers, index]; // Add if not checked
+                    setQuestion({
+                      ...question,
+                      correctAnswers: newCorrectAnswers,
+                    });
+                  }}
+                />
+                <Input
+                  placeholder={`Đáp án ${index + 1}`}
+                  value={answer}
+                  onChange={(e) => handleAnswerChange(index, e.target.value)}
+                  flex={1}
+                />
+              </HStack>
+            </WrapItem>
+          ))}
+        </Wrap>
 
         <Button onClick={handleAddAnswer}>Thêm đáp án</Button>
-
-        <Select
-          placeholder="Chọn đáp án đúng"
-          multiple
-          onChange={(e) => {
-            const selectedOptions = Array.from(e.target.selectedOptions, (option) => Number(option.value));
-            setQuestion({ ...question, correctAnswers: selectedOptions });
-          }}
-        >
-          {question.answers.map((answer, index) => (
-            <option key={index} value={index}>
-              Đáp án {index + 1}
-            </option>
-          ))}
-        </Select>
 
         <Select
           placeholder="Chọn độ khó"
