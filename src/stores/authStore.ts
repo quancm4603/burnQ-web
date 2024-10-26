@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { mockUsers } from '../mock/mockData';
 import { AuthApi, LoginRequest, UserApi } from '../../api';
 import axios from 'axios';
 
@@ -51,5 +50,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
     }
   },
-  logout: () => set({ user: null, isLoggedIn: false }),
+  logout: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    set({ user: null, isLoggedIn: false, token: null });
+  },
 }));
