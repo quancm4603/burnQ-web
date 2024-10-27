@@ -1,17 +1,10 @@
 import { create } from 'zustand';
-
-interface Exam {
-    id: number;
-    subject: string;
-    name: string;
-    date: string;
-    questions: number[];
-}
+import { ExamResponse } from '../../api';
 
 interface ExamStore {
-    exams: Exam[];
-    addExam: (exam: Exam) => void;
-    initializeExams: (initialExams: Exam[]) => void;
+    exams: ExamResponse[];
+    addExam: (exam: ExamResponse) => void;
+    initializeExams: (initialExams: ExamResponse[]) => void;
 }
 
 export const useExamStore = create<ExamStore>((set) => ({

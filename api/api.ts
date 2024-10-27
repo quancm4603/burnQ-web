@@ -417,19 +417,6 @@ export interface CreateExamRequest {
 /**
  * 
  * @export
- * @interface CreateExamResponse
- */
-export interface CreateExamResponse {
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateExamResponse
-     */
-    'message'?: string | null;
-}
-/**
- * 
- * @export
  * @interface CreateQuestionRequest
  */
 export interface CreateQuestionRequest {
@@ -694,6 +681,80 @@ export interface ExamQuestion {
      * @memberof ExamQuestion
      */
     'question'?: Question;
+}
+/**
+ * 
+ * @export
+ * @interface ExamRequest
+ */
+export interface ExamRequest {
+    /**
+     * 
+     * @type {number}
+     * @memberof ExamRequest
+     */
+    'id': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ExamRequest
+     */
+    'name': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ExamRequest
+     */
+    'date': string;
+    /**
+     * 
+     * @type {Array<number>}
+     * @memberof ExamRequest
+     */
+    'questionIds': Array<number>;
+}
+/**
+ * 
+ * @export
+ * @interface ExamResponse
+ */
+export interface ExamResponse {
+    /**
+     * 
+     * @type {number}
+     * @memberof ExamResponse
+     */
+    'id'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ExamResponse
+     */
+    'subjectName'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ExamResponse
+     */
+    'name'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ExamResponse
+     */
+    'date'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ExamResponse
+     */
+    'teacherName'?: string | null;
+    /**
+     * 
+     * @type {Array<QuestionResponse>}
+     * @memberof ExamResponse
+     */
+    'questions'?: Array<QuestionResponse> | null;
 }
 /**
  * 
@@ -2555,6 +2616,76 @@ export const ExamApiAxiosParamCreator = function (configuration?: Configuration)
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiExamTeacherGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/Exam/Teacher`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {ExamRequest} [examRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiExamTeacherUpdatePut: async (examRequest?: ExamRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/Exam/teacher/update`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(examRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -2571,7 +2702,7 @@ export const ExamApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiExamCreatePost(createExamRequest?: CreateExamRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateExamResponse>> {
+        async apiExamCreatePost(createExamRequest?: CreateExamRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExamResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.apiExamCreatePost(createExamRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ExamApi.apiExamCreatePost']?.[localVarOperationServerIndex]?.url;
@@ -2583,10 +2714,33 @@ export const ExamApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiExamIdGet(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Exam>> {
+        async apiExamIdGet(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExamResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.apiExamIdGet(id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ExamApi.apiExamIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiExamTeacherGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ExamResponse>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiExamTeacherGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ExamApi.apiExamTeacherGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {ExamRequest} [examRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiExamTeacherUpdatePut(examRequest?: ExamRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExamResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiExamTeacherUpdatePut(examRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ExamApi.apiExamTeacherUpdatePut']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -2605,7 +2759,7 @@ export const ExamApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiExamCreatePost(createExamRequest?: CreateExamRequest, options?: RawAxiosRequestConfig): AxiosPromise<CreateExamResponse> {
+        apiExamCreatePost(createExamRequest?: CreateExamRequest, options?: RawAxiosRequestConfig): AxiosPromise<ExamResponse> {
             return localVarFp.apiExamCreatePost(createExamRequest, options).then((request) => request(axios, basePath));
         },
         /**
@@ -2614,8 +2768,25 @@ export const ExamApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiExamIdGet(id: number, options?: RawAxiosRequestConfig): AxiosPromise<Exam> {
+        apiExamIdGet(id: number, options?: RawAxiosRequestConfig): AxiosPromise<ExamResponse> {
             return localVarFp.apiExamIdGet(id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiExamTeacherGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<ExamResponse>> {
+            return localVarFp.apiExamTeacherGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {ExamRequest} [examRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiExamTeacherUpdatePut(examRequest?: ExamRequest, options?: RawAxiosRequestConfig): AxiosPromise<ExamResponse> {
+            return localVarFp.apiExamTeacherUpdatePut(examRequest, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -2647,6 +2818,27 @@ export class ExamApi extends BaseAPI {
      */
     public apiExamIdGet(id: number, options?: RawAxiosRequestConfig) {
         return ExamApiFp(this.configuration).apiExamIdGet(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ExamApi
+     */
+    public apiExamTeacherGet(options?: RawAxiosRequestConfig) {
+        return ExamApiFp(this.configuration).apiExamTeacherGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {ExamRequest} [examRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ExamApi
+     */
+    public apiExamTeacherUpdatePut(examRequest?: ExamRequest, options?: RawAxiosRequestConfig) {
+        return ExamApiFp(this.configuration).apiExamTeacherUpdatePut(examRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

@@ -1,31 +1,72 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Box, Heading, Input, Button, VStack, HStack, Text, 
     Checkbox, Stack, Flex, InputGroup, InputLeftElement, Divider, Tag, TagCloseButton,
-    Select
+    Select, useToast, Spinner
 } from '@chakra-ui/react';
 import { SearchIcon } from '@chakra-ui/icons';
 import { useExamStore } from '../../../stores/examStore';
 import { useRouter } from 'next/navigation';
-import { mockQuestions } from '../../../mock/mockData';
 import { InlineMath, BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
+import { CreateExamRequest, ExamApi, QuestionApi, QuestionResponse, SubjectApi, SubjectResponse } from '../../../../api'; 
+import { useAuthStore } from '@/stores/authStore';
 
 export default function CreateExam() {
     const { addExam } = useExamStore();
     const router = useRouter();
-    const [newExam, setNewExam] = useState({ subject: '', name: '', date: '', questions: [] });
+    const toast = useToast(); 
+    const { token } = useAuthStore(); 
+    const [newExam, setNewExam] = useState({ subject: '', name: '', date: new Date().toISOString(), questions: [] });
     const [selectedQuestions, setSelectedQuestions] = useState<number[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
-
-    // Bộ lọc
+    const [questions, setQuestions] = useState<QuestionResponse[]>([]); 
+    const [isLoading, setIsLoading] = useState(true); 
     const [filters, setFilters] = useState<{ subjects: string[], difficulties: string[] }>({ subjects: [], difficulties: [] });
-    const uniqueSubjects = Array.from(new Set(mockQuestions.map(q => q.subject)));
-    const uniqueDifficulties = Array.from(new Set(mockQuestions.map(q => q.difficulty)));
+    const [subjects, setSubjects] = useState<SubjectResponse[]>([]); // Chỉnh sửa state cho subjects
 
-    // Hàm render nội dung toán học
+    const questionApi = new QuestionApi();
+    const examApi = new ExamApi();
+    const subjectApi = new SubjectApi();
+
+    useEffect(() => {
+        const fetchQuestions = async () => {
+            try {
+                setIsLoading(true); 
+                const response = await questionApi.apiQuestionTeacherGet("", 1, 100, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                setQuestions(response.data.questions ?? []);
+            } catch (error) {
+                console.error("Error fetching questions:", error);
+            } finally {
+                setIsLoading(false); 
+            }
+        };
+
+        const fetchSubjects = async () => {
+            try {
+                const response = await subjectApi.apiSubjectCurrentGet({
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                setSubjects(response.data); // Lưu trực tiếp danh sách SubjectResponse
+            } catch (error) {
+                console.error("Error fetching subjects:", error);
+            }
+        };
+
+        fetchQuestions();
+        fetchSubjects(); // Lấy danh sách môn học từ API
+    }, [token]); 
+
+    const uniqueDifficulties = Array.from(new Set(questions.map(q => q.difficultyLevel)));
+
     const renderMathContent = (content: string) => {
         return content.split(/($$[\s\S]+?$$|\$[\s\S]+?\$)/).map((part, index) => {
             if (part.startsWith('$$') && part.endsWith('$$')) {
@@ -48,18 +89,56 @@ export default function CreateExam() {
         setSelectedQuestions(selectedQuestions.filter(questionId => questionId !== id));
     };
 
-    const handleCreateExam = () => {
-        addExam({ ...newExam, id: Date.now(), questions: selectedQuestions });
-        setNewExam({ subject: '', name: '', date: '', questions: [] });
-        setSelectedQuestions([]);
-        router.push('/exams');
+    const handleCreateExam = async () => {
+        try {
+            const examData: CreateExamRequest = {
+                subjectId: parseInt(newExam.subject),
+                name: newExam.name,
+                date: newExam.date,
+                questionIds: selectedQuestions,
+            };
+            const response = await examApi.apiExamCreatePost(examData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (response.status !== 201) {
+                throw new Error('Failed to create exam');
+            }
+
+            const data = await response.data;
+            addExam(data); 
+            setNewExam({ subject: '', name: '', date: new Date().toISOString().slice(0, 16), questions: [] });
+            setSelectedQuestions([]);
+            router.push('/exams');
+
+            toast({
+                title: "Đề thi đã được tạo.",
+                description: "Bạn đã tạo đề thi thành công!",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error(error);
+            toast({
+                title: "Có lỗi xảy ra.",
+                description: "Không thể tạo đề thi. Vui lòng thử lại sau.",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
     };
 
-    const filteredQuestions = mockQuestions.filter(question => 
-        question.content.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        (!filters.subjects.length || filters.subjects.includes(question.subject)) &&
-        (!filters.difficulties.length || filters.difficulties.includes(question.difficulty)) &&
-        !selectedQuestions.includes(question.id) // Ẩn câu hỏi đã chọn
+    const filteredQuestions = questions.filter(question => 
+        question.content?.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        (!filters.subjects.length || filters.subjects.includes(question.subject ?? '')) &&
+        (!filters.difficulties.length || filters.difficulties.includes(question.difficultyLevel ?? '')) &&
+        question.id !== undefined && !selectedQuestions.includes(question.id)
     );
 
     const handleFilterChange = (filterType: 'subjects' | 'difficulties', value: string) => {
@@ -82,25 +161,28 @@ export default function CreateExam() {
         <Box p={5}>
             <Heading mb={4}>Tạo đề thi</Heading>
             <VStack spacing={4} align="stretch">
-                <Input 
-                    placeholder="Môn học" 
+                <Select 
+                    placeholder="Chọn môn học" 
                     value={newExam.subject} 
                     onChange={(e) => setNewExam({ ...newExam, subject: e.target.value })} 
-                />
+                >
+                    {subjects.map(subject => (
+                        <option key={subject.id} value={subject.id}>{subject.name}</option>
+                    ))}
+                </Select>
                 <Input 
                     placeholder="Tên đề thi" 
                     value={newExam.name} 
                     onChange={(e) => setNewExam({ ...newExam, name: e.target.value })} 
                 />
-                <Input 
+                {/* <Input 
                     placeholder="Ngày thi" 
                     type="date" 
                     value={newExam.date} 
                     onChange={(e) => setNewExam({ ...newExam, date: e.target.value })} 
-                />
+                /> */}
             </VStack>
 
-            {/* Thanh tìm kiếm và bộ lọc */}
             <Flex mt={5} alignItems="center" flexWrap="wrap" gap={2}>
                 <InputGroup size="md" maxWidth="300px">
                     <InputLeftElement pointerEvents="none">
@@ -113,17 +195,16 @@ export default function CreateExam() {
                     />
                 </InputGroup>
                 <Select placeholder="Môn học" onChange={(e) => handleFilterChange('subjects', e.target.value)} maxWidth="150px">
-                    {uniqueSubjects.map(subject => (
-                        <option key={subject} value={subject}>{subject}</option>
+                    {subjects.map(subject => (
+                        <option key={subject.id} value={subject.name ?? ''}>{subject.name}</option>
                     ))}
                 </Select>
                 <Select placeholder="Độ khó" onChange={(e) => handleFilterChange('difficulties', e.target.value)} maxWidth="150px">
                     {uniqueDifficulties.map(difficulty => (
-                        <option key={difficulty} value={difficulty}>{difficulty}</option>
+                        <option key={difficulty} value={difficulty ?? ''}>{difficulty}</option>
                     ))}
                 </Select>
                 <HStack spacing={2} flexWrap="wrap">
-                    {/* Hiển thị các tag đã chọn cho môn học và độ khó */}
                     {filters.subjects.map(subject => (
                         <Tag key={`subject-${subject}`} size="md" borderRadius="full" variant="solid" colorScheme="blue">
                             {subject}
@@ -140,50 +221,63 @@ export default function CreateExam() {
             </Flex>
 
             <Flex mt={5} align="flex-start">
-                {/* Cột tìm kiếm */}
                 <Box flex="1" mr={5}>
-                <Heading size="md" mb={2}>Tìm kiếm</Heading>
-                    <Stack spacing={2} mt={4} maxHeight="400px" overflowY="auto" borderWidth={1} borderRadius="md" p={3}>
-                        {filteredQuestions.map(question => (
-                            <Checkbox 
-                                key={question.id} 
-                                onChange={() => handleAddQuestion(question.id)}
-                            >
-                                <Text>{renderMathContent(question.content)}</Text>
-                            </Checkbox>
-                        ))}
-                    </Stack>
+                    <Heading size="md" mb={2}>Câu hỏi tìm kiếm</Heading>
+                    {isLoading ? (
+                        <Spinner />
+                    ) : (
+                        <Stack spacing={2} maxHeight="400px" overflowY="auto" borderWidth={1} borderRadius="md" p={3}>
+                            {filteredQuestions.map(question => (
+                                <Box 
+                                    key={question.id} 
+                                    borderWidth="1px" 
+                                    borderRadius="lg" 
+                                    p={4} 
+                                    mb={2} 
+                                    onClick={() => question.id !== undefined && handleAddQuestion(question.id)} 
+                                    cursor="pointer"
+                                    _hover={{ bg: 'gray.100' }}
+                                >
+                                    <Text fontSize="md">{renderMathContent(question.content ?? '')}</Text>
+                                </Box>
+                            ))}
+                        </Stack>
+                    )}
                 </Box>
-
-                <Divider orientation="vertical" />
-
-                {/* Cột hiển thị câu hỏi đã chọn */}
-                <Box flex="1" ml={5}>
+                <Box flex="1">
                     <Heading size="md" mb={2}>Câu hỏi đã chọn</Heading>
                     <Stack spacing={2} maxHeight="400px" overflowY="auto" borderWidth={1} borderRadius="md" p={3}>
                         {selectedQuestions.map(id => {
-                            const question = mockQuestions.find(q => q.id === id);
-                            return question ? (
-                                <Box key={question.id} borderWidth={1} borderRadius="md" p={2}>
-                                    <HStack justify="space-between">
-                                        <Text fontWeight="bold">{question.subject}</Text>
-                                        <Button 
-                                            variant="link" 
-                                            color="red.500" 
-                                            onClick={() => handleRemoveQuestion(question.id)}
-                                        >
-                                            &times; {/* Dấu x */}
-                                        </Button>
-                                    </HStack>
-                                    <Text>{renderMathContent(question.content)}</Text>
-                                </Box>
-                            ) : null;
+                            const selectedQuestion = questions.find(q => q.id === id);
+                            return (
+                                selectedQuestion && (
+                                    <Box 
+                                        key={id} 
+                                        borderWidth="1px" 
+                                        borderRadius="lg" 
+                                        p={4} 
+                                        mb={2} 
+                                        onClick={() => handleRemoveQuestion(id)} 
+                                        cursor="pointer"
+                                        _hover={{ bg: 'red.100' }}
+                                    >
+                                        <Text fontSize="md">{renderMathContent(selectedQuestion.content ?? '')}</Text>
+                                    </Box>
+                                )
+                            );
                         })}
                     </Stack>
                 </Box>
             </Flex>
 
-            <Button colorScheme="blue" onClick={handleCreateExam} mt={4}>Tạo Đề Thi</Button>
+            <Button 
+                mt={5} 
+                colorScheme="teal" 
+                onClick={handleCreateExam} 
+                isDisabled={!newExam.subject || !newExam.name || selectedQuestions.length === 0}
+            >
+                Tạo đề thi
+            </Button>
         </Box>
     );
 }
