@@ -505,6 +505,50 @@ export interface CreateSubjectResponse {
 /**
  * 
  * @export
+ * @interface CreateTestRequest
+ */
+export interface CreateTestRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateTestRequest
+     */
+    'code'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateTestRequest
+     */
+    'startDateTime'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateTestRequest
+     */
+    'endDateTime'?: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateTestRequest
+     */
+    'examId'?: number;
+}
+/**
+ * 
+ * @export
+ * @interface CreateTestResponse
+ */
+export interface CreateTestResponse {
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateTestResponse
+     */
+    'message'?: string | null;
+}
+/**
+ * 
+ * @export
  * @interface Difficulty
  */
 export interface Difficulty {
@@ -644,6 +688,12 @@ export interface Exam {
      * @memberof Exam
      */
     'examQuestions'?: Array<ExamQuestion> | null;
+    /**
+     * 
+     * @type {Array<Test>}
+     * @memberof Exam
+     */
+    'tests'?: Array<Test> | null;
 }
 /**
  * 
@@ -816,6 +866,37 @@ export interface PagedQuestionResponse {
      * 
      * @type {number}
      * @memberof PagedQuestionResponse
+     */
+    'pageSize'?: number;
+}
+/**
+ * 
+ * @export
+ * @interface PagedTestResponse
+ */
+export interface PagedTestResponse {
+    /**
+     * 
+     * @type {Array<TestResponse>}
+     * @memberof PagedTestResponse
+     */
+    'tests'?: Array<TestResponse> | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof PagedTestResponse
+     */
+    'totalItems'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof PagedTestResponse
+     */
+    'currentPage'?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof PagedTestResponse
      */
     'pageSize'?: number;
 }
@@ -1220,6 +1301,86 @@ export interface SubjectResponse {
      * @memberof SubjectResponse
      */
     'teacherFullName'?: string | null;
+}
+/**
+ * 
+ * @export
+ * @interface Test
+ */
+export interface Test {
+    /**
+     * 
+     * @type {number}
+     * @memberof Test
+     */
+    'id'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof Test
+     */
+    'code': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Test
+     */
+    'startDateTime': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Test
+     */
+    'endDateTime': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof Test
+     */
+    'examId'?: number;
+    /**
+     * 
+     * @type {Exam}
+     * @memberof Test
+     */
+    'exam'?: Exam;
+}
+/**
+ * 
+ * @export
+ * @interface TestResponse
+ */
+export interface TestResponse {
+    /**
+     * 
+     * @type {number}
+     * @memberof TestResponse
+     */
+    'id'?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof TestResponse
+     */
+    'code'?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof TestResponse
+     */
+    'startDateTime'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TestResponse
+     */
+    'endDateTime'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TestResponse
+     */
+    'teacherName'?: string | null;
 }
 /**
  * 
@@ -3496,6 +3657,493 @@ export class SubjectApi extends BaseAPI {
      */
     public apiSubjectIdGet(id: number, options?: RawAxiosRequestConfig) {
         return SubjectApiFp(this.configuration).apiSubjectIdGet(id, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * TestApi - axios parameter creator
+ * @export
+ */
+export const TestApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {CreateTestRequest} [createTestRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiTestCreatePost: async (createTestRequest?: CreateTestRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/Test/create`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(createTestRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiTestIdGet: async (id: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('apiTestIdGet', 'id', id)
+            const localVarPath = `/api/Test/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} [searchQuery] 
+         * @param {number} [page] 
+         * @param {number} [pageSize] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiTestSearchGet: async (searchQuery?: string, page?: number, pageSize?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/Test/search`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (searchQuery !== undefined) {
+                localVarQueryParameter['searchQuery'] = searchQuery;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (pageSize !== undefined) {
+                localVarQueryParameter['pageSize'] = pageSize;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiTestStudentIdGet: async (id: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('apiTestStudentIdGet', 'id', id)
+            const localVarPath = `/api/Test/student/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} [searchQuery] 
+         * @param {number} [page] 
+         * @param {number} [pageSize] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiTestTeacherGet: async (searchQuery?: string, page?: number, pageSize?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/Test/teacher`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (searchQuery !== undefined) {
+                localVarQueryParameter['searchQuery'] = searchQuery;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+            if (pageSize !== undefined) {
+                localVarQueryParameter['pageSize'] = pageSize;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiTestTeacherIdGet: async (id: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('apiTestTeacherIdGet', 'id', id)
+            const localVarPath = `/api/Test/teacher/{id}`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication Bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * TestApi - functional programming interface
+ * @export
+ */
+export const TestApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = TestApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {CreateTestRequest} [createTestRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiTestCreatePost(createTestRequest?: CreateTestRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateTestResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiTestCreatePost(createTestRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TestApi.apiTestCreatePost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiTestIdGet(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TestResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiTestIdGet(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TestApi.apiTestIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} [searchQuery] 
+         * @param {number} [page] 
+         * @param {number} [pageSize] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiTestSearchGet(searchQuery?: string, page?: number, pageSize?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PagedTestResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiTestSearchGet(searchQuery, page, pageSize, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TestApi.apiTestSearchGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiTestStudentIdGet(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExamResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiTestStudentIdGet(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TestApi.apiTestStudentIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} [searchQuery] 
+         * @param {number} [page] 
+         * @param {number} [pageSize] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiTestTeacherGet(searchQuery?: string, page?: number, pageSize?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PagedTestResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiTestTeacherGet(searchQuery, page, pageSize, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TestApi.apiTestTeacherGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiTestTeacherIdGet(id: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ExamResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiTestTeacherIdGet(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TestApi.apiTestTeacherIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * TestApi - factory interface
+ * @export
+ */
+export const TestApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = TestApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {CreateTestRequest} [createTestRequest] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiTestCreatePost(createTestRequest?: CreateTestRequest, options?: RawAxiosRequestConfig): AxiosPromise<CreateTestResponse> {
+            return localVarFp.apiTestCreatePost(createTestRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiTestIdGet(id: number, options?: RawAxiosRequestConfig): AxiosPromise<TestResponse> {
+            return localVarFp.apiTestIdGet(id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {string} [searchQuery] 
+         * @param {number} [page] 
+         * @param {number} [pageSize] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiTestSearchGet(searchQuery?: string, page?: number, pageSize?: number, options?: RawAxiosRequestConfig): AxiosPromise<PagedTestResponse> {
+            return localVarFp.apiTestSearchGet(searchQuery, page, pageSize, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiTestStudentIdGet(id: number, options?: RawAxiosRequestConfig): AxiosPromise<ExamResponse> {
+            return localVarFp.apiTestStudentIdGet(id, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {string} [searchQuery] 
+         * @param {number} [page] 
+         * @param {number} [pageSize] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiTestTeacherGet(searchQuery?: string, page?: number, pageSize?: number, options?: RawAxiosRequestConfig): AxiosPromise<PagedTestResponse> {
+            return localVarFp.apiTestTeacherGet(searchQuery, page, pageSize, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {number} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiTestTeacherIdGet(id: number, options?: RawAxiosRequestConfig): AxiosPromise<ExamResponse> {
+            return localVarFp.apiTestTeacherIdGet(id, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * TestApi - object-oriented interface
+ * @export
+ * @class TestApi
+ * @extends {BaseAPI}
+ */
+export class TestApi extends BaseAPI {
+    /**
+     * 
+     * @param {CreateTestRequest} [createTestRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TestApi
+     */
+    public apiTestCreatePost(createTestRequest?: CreateTestRequest, options?: RawAxiosRequestConfig) {
+        return TestApiFp(this.configuration).apiTestCreatePost(createTestRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {number} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TestApi
+     */
+    public apiTestIdGet(id: number, options?: RawAxiosRequestConfig) {
+        return TestApiFp(this.configuration).apiTestIdGet(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {string} [searchQuery] 
+     * @param {number} [page] 
+     * @param {number} [pageSize] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TestApi
+     */
+    public apiTestSearchGet(searchQuery?: string, page?: number, pageSize?: number, options?: RawAxiosRequestConfig) {
+        return TestApiFp(this.configuration).apiTestSearchGet(searchQuery, page, pageSize, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {number} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TestApi
+     */
+    public apiTestStudentIdGet(id: number, options?: RawAxiosRequestConfig) {
+        return TestApiFp(this.configuration).apiTestStudentIdGet(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {string} [searchQuery] 
+     * @param {number} [page] 
+     * @param {number} [pageSize] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TestApi
+     */
+    public apiTestTeacherGet(searchQuery?: string, page?: number, pageSize?: number, options?: RawAxiosRequestConfig) {
+        return TestApiFp(this.configuration).apiTestTeacherGet(searchQuery, page, pageSize, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {number} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TestApi
+     */
+    public apiTestTeacherIdGet(id: number, options?: RawAxiosRequestConfig) {
+        return TestApiFp(this.configuration).apiTestTeacherIdGet(id, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

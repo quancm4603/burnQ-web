@@ -23,7 +23,7 @@ export default function Header() {
   const navItems = [
     { href: '/questions', icon: FaQuestion, label: 'Câu hỏi' },
     { href: '/exams', icon: FaFileAlt, label: 'Đề thi' },
-    { href: '/schedule', icon: FaClock, label: 'Lịch thi' },
+    { href: '/tests', icon: FaClock, label: 'Lịch thi' },
     { href: '/students', icon: FaUsers, label: 'Học sinh' },
   ];
 
