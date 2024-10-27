@@ -101,33 +101,46 @@ export default function CreateQuestion() {
     setQuestion({ ...question, answers: [...question.answers, ""] });
   };
 
+  const handleRemoveAnswer = (index: number) => {
+    const newAnswers = question.answers.filter((_, i) => i !== index);
+    const newCorrectAnswers = question.correctAnswers.filter(
+      (i) => i !== index
+    );
+    setQuestion({
+      ...question,
+      answers: newAnswers,
+      correctAnswers: newCorrectAnswers,
+    });
+  };
+
   const insertSymbol = (latex: string) => {
     if (textareaRef.current) {
       const start = textareaRef.current.selectionStart;
       const end = textareaRef.current.selectionEnd;
       const text = question.content;
-  
+
       const beforeCursor = text.substring(0, start);
       const afterCursor = text.substring(end);
-  
+
       const lastDollarBeforeCursor = beforeCursor.lastIndexOf("$");
       const nextDollarAfterCursor = afterCursor.indexOf("$");
-  
+
       // Kiểm tra nếu con trỏ nằm trong cặp dấu $
       const isInsideMathBlock =
         lastDollarBeforeCursor !== -1 &&
         nextDollarAfterCursor !== -1 &&
         beforeCursor.substring(lastDollarBeforeCursor).split("$").length % 2 ===
           0;
-  
+
       // Kiểm tra xem con trỏ có nằm trong cặp {} của frac không
       const lastFracIndex = beforeCursor.lastIndexOf("\\frac");
       const lastBraceBeforeCursor = beforeCursor.lastIndexOf("{");
-      const isInsideFrac = lastFracIndex !== -1 && lastBraceBeforeCursor > lastFracIndex;
-  
+      const isInsideFrac =
+        lastFracIndex !== -1 && lastBraceBeforeCursor > lastFracIndex;
+
       let newText: string;
       let newCursorPosition: number;
-  
+
       if (isInsideMathBlock) {
         if (isInsideFrac && latex === "\\frac") {
           latex = "\\cfrac"; // Chuyển thành \cfrac nếu đang trong {}
@@ -139,9 +152,9 @@ export default function CreateQuestion() {
         newText = beforeCursor + "$" + latex + "$" + afterCursor;
         newCursorPosition = start + latex.length + 1; // +1 để đặt con trỏ trước dấu $ cuối
       }
-  
+
       setQuestion({ ...question, content: newText });
-  
+
       setTimeout(() => {
         if (textareaRef.current) {
           textareaRef.current.selectionStart =
@@ -151,7 +164,7 @@ export default function CreateQuestion() {
       }, 0);
     }
   };
-  
+
   useEffect(() => {
     const fetchSubjectsAndChapters = async () => {
       try {
@@ -328,8 +341,8 @@ export default function CreateQuestion() {
                     const newCorrectAnswers = question.correctAnswers.includes(
                       index
                     )
-                      ? question.correctAnswers.filter((i) => i !== index) // Remove if already checked
-                      : [...question.correctAnswers, index]; // Add if not checked
+                      ? question.correctAnswers.filter((i) => i !== index)
+                      : [...question.correctAnswers, index];
                     setQuestion({
                       ...question,
                       correctAnswers: newCorrectAnswers,
@@ -342,6 +355,26 @@ export default function CreateQuestion() {
                   onChange={(e) => handleAnswerChange(index, e.target.value)}
                   flex={1}
                 />
+                <Button
+                  size="xs" // Make the button small
+                  onClick={() => {
+                    const newAnswers = question.answers.filter(
+                      (_, i) => i !== index
+                    );
+                    const newCorrectAnswers = question.correctAnswers.filter(
+                      (i) => i !== index
+                    );
+                    setQuestion({
+                      ...question,
+                      answers: newAnswers,
+                      correctAnswers: newCorrectAnswers,
+                    });
+                  }}
+                  _hover={{ bg: "lightcoral" }}
+                  _focus={{ bg: "lightcoral" }}
+                >
+                  &times; {}
+                </Button>
               </HStack>
             </WrapItem>
           ))}

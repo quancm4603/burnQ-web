@@ -76,8 +76,8 @@ export default function Header() {
               ))}
             </Flex>
             <Flex align="center">
-              <Avatar size="sm" name={user?.name} mr={2} />
-              <Text mr={4}>{user?.name}</Text>
+              <Avatar size="sm" name={user?.fullName} mr={2} />
+              <Text mr={4}>{user?.fullName}</Text>
               <Button onClick={handleLogout} colorScheme="blue" size="sm">Đăng xuất</Button>
             </Flex>
           </Flex>
