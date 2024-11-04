@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Button,
@@ -12,36 +12,45 @@ import {
   Heading,
   useToast,
   Flex,
-} from '@chakra-ui/react';
-import { useAuthStore } from '../stores/authStore';
-import Image from 'next/image';
+  Spinner,
+} from "@chakra-ui/react";
+import { useAuthStore } from "../stores/authStore";
+import Image from "next/image";
 
 export default function LoginForm() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(true);
   const login = useAuthStore((state) => state.login);
   const router = useRouter();
   const toast = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
       await login(username, password);
       toast({
-        title: 'Đăng nhập thành công',
-        status: 'success',
+        title: "Đăng nhập thành công",
+        status: "success",
         duration: 2000,
       });
-      router.push('/dashboard');
+      router.push("/dashboard");
     } catch (error) {
       toast({
-        title: 'Đăng nhập thất bại',
-        description: 'Vui lòng kiểm tra thông tin đăng nhập của bạn',
-        status: 'error',
+        title: "Đăng nhập thất bại",
+        description: "Vui lòng kiểm tra thông tin đăng nhập của bạn",
+        status: "error",
         duration: 2000,
       });
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    setLoading(false);
+  }, []);
 
   return (
     <Box
@@ -76,11 +85,16 @@ export default function LoginForm() {
               placeholder="Nhập mật khẩu"
             />
           </FormControl>
-          <Button type="submit" colorScheme="blue" width="full">
+          <Button type="submit" colorScheme="blue" width="full" disabled= {loading}>
             Đăng nhập
           </Button>
         </VStack>
       </form>
+      {loading ? (
+        <Box textAlign="center" mt={8}>
+          <Spinner size="lg" />
+        </Box>
+      ) : null}
     </Box>
   );
 }
