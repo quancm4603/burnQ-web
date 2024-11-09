@@ -31,7 +31,7 @@ import { QuestionApi } from "../../../api"; // Giả sử bạn đã tạo Quest
 import { useAuthStore } from "@/stores/authStore";
 
 export default function Questions() {
-  const { questions, initializeQuestions } = useQuestionStore(); // Lấy câu hỏi từ store
+  const { questions, loadedPage, addQuestions, setLoadedPage } = useQuestionStore(); // Lấy câu hỏi từ store
   const { token } = useAuthStore(); // Lấy token từ store
   const [search, setSearch] = useState("");
   const router = useRouter();
@@ -45,31 +45,37 @@ export default function Questions() {
     { key: string; value: string }[]
   >([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [questionsPerPage, setQuestionsPerPage] = useState(5);
-  const [isLoading, setIsLoading] = useState(true); // Trạng thái để theo dõi quá trình tải
+  const [pageSize, setpageSize] = useState(6);
+  const [isLoading, setIsLoading] = useState(true); 
+  const [totalPages, setTotalPages] = useState(0);
 
   // Gọi API để lấy câu hỏi
   const questionApi = new QuestionApi();
 
-  useEffect(() => {
-    const fetchQuestions = async () => {
-      try {
-        setIsLoading(true); // Bắt đầu quá trình tải
-        const response = await questionApi.apiQuestionTeacherGet("", 1, 100, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }); // Thay đổi thông số cho phù hợp
-        initializeQuestions(response.data.questions ?? []);
-      } catch (error) {
-        console.error("Error fetching questions:", error);
-      } finally {
-        setIsLoading(false); // Kết thúc quá trình tải
+  const fetchQuestions = async (searchQuery? : string, currentPage? : number, pageSize? : number) => {
+    try {
+      setIsLoading(true); // Bắt đầu quá trình tải
+      const response = await questionApi.apiQuestionTeacherGet(searchQuery, currentPage, pageSize, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }); // Thay đổi thông số cho phù hợp
+      addQuestions(response.data.questions ?? []);
+      console.log("Questions:", questions);
+      setTotalPages(Math.ceil((response.data.totalItems ?? 0) / (pageSize ?? 6)));
+      if ((currentPage ?? 1) > loadedPage) {
+        setLoadedPage(currentPage ?? 1);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching questions:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchQuestions();
-  }, [initializeQuestions]); // Chạy effect khi component mount
+  useEffect(() => {
+    fetchQuestions(search, currentPage, pageSize);
+  }, [addQuestions]); // Chạy effect khi component mount
 
   // Extract unique values for filters
   const uniqueSubjects = Array.from(new Set(questions.map((q) => q.subject)));
@@ -140,13 +146,16 @@ export default function Questions() {
   };
 
   const handlePageChange = (newPage: number) => {
+    if (newPage > loadedPage) {
+      fetchQuestions(search, newPage, pageSize);
+    }
     setCurrentPage(newPage);
   };
 
-  const totalPages = Math.ceil(filteredQuestions.length / questionsPerPage);
+  // const totalPages = Math.ceil(filteredQuestions.length / pageSize);
   const currentQuestions = filteredQuestions.slice(
-    (currentPage - 1) * questionsPerPage,
-    currentPage * questionsPerPage
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
   );
 
   if (isLoading) {
